@@ -1,0 +1,11 @@
+{
+  "name": "fuel",
+  "version": "0.0.1",
+  "description": "A lisp dialect that compiles to JavaScript.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ömercan Balandı <balandiomer@gmail.com>",
+  "license": "ISC"
+}
