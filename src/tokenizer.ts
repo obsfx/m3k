@@ -52,27 +52,47 @@ export const tokenize = (input: string): Token[] => {
       case '(':
         tokens.push({ type: TokenType.OPEN_PAREN, value: '' })
         break
+
       case ')':
         tokens.push({ type: TokenType.CLOSE_PAREN, value: '' })
         break
+
       case '-':
-        tokens.push({ type: TokenType.MINUS, value: '' })
+        tokens.push({ type: TokenType.MINUS, value: '-' })
         break
+
       case '+':
-        tokens.push({ type: TokenType.PLUS, value: '' })
+        if (peek() !== ' ') {
+          throw new Error(`Unexpected first symbol character: ${peek()}`)
+        }
+        tokens.push({ type: TokenType.PLUS, value: '+' })
         break
+
       case '/':
-        tokens.push({ type: TokenType.SLASH, value: '' })
+        if (peek() !== ' ') {
+          throw new Error(`Unexpected first symbol character: ${peek()}`)
+        }
+        tokens.push({ type: TokenType.SLASH, value: '/' })
         break
+
       case '*':
-        tokens.push({ type: TokenType.STAR, value: '' })
+        if (peek() !== ' ') {
+          throw new Error(`Unexpected first symbol character: ${peek()}`)
+        }
+        tokens.push({ type: TokenType.STAR, value: '*' })
         break
+
       case '=':
+        if (peek() !== ' ') {
+          throw new Error(`Unexpected first symbol character: ${peek()}`)
+        }
         tokens.push({ type: TokenType.EQUAL, value: '' })
         break
+
       case ' ':
-        tokens.push({ type: TokenType.SPACE, value: '' })
+        //tokens.push({ type: TokenType.SPACE, value: '' })
         break
+
       default:
         {
           if (!isNaN(Number(char))) {
