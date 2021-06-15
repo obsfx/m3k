@@ -1,21 +1,7 @@
-import { TokenType, Token } from './tokenizer'
+import { TokenType, Token } from './types/token.types'
+import { AST, BinaryExpression, Literal } from './types/ast.types'
 
-interface Literal {
-  type: 'Literal'
-  raw: string | number
-}
-
-interface BinaryExpression {
-  type: 'BinaryExpression'
-  left: BinaryExpression | Literal
-  operator: string
-  right: BinaryExpression | Literal
-}
-
-interface AST {
-  type: 'Program'
-  body: BinaryExpression[]
-}
+type WalkResult = BinaryExpression | Literal
 
 export const parse = (tokens: Token[]): AST => {
   let ast: AST = {
@@ -58,8 +44,6 @@ export const parse = (tokens: Token[]): AST => {
 
     return node
   }
-
-  type WalkResult = BinaryExpression | Literal
 
   const walk = (): WalkResult => {
     const token: Token = consume()
