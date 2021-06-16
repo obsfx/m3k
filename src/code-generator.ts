@@ -5,12 +5,28 @@ import {
   AST,
   ExpressionStatement,
   UnaryExpression,
+  VariableDeclaration,
+  VariableDeclarator,
+  Identifier,
 } from './types/ast.types'
 
 export const generate = (node: Node): string => {
   switch (node.type) {
     case 'Program':
       return (node as AST).body.map(generate).join('\n')
+
+    case 'VariableDeclaration':
+      return `${(node as VariableDeclaration).kind} ${(
+        node as VariableDeclaration
+      ).declarations.map(generate)};`
+
+    case 'VariableDeclarator':
+      return `${generate((node as VariableDeclarator).id)} = ${generate(
+        (node as VariableDeclarator).init
+      )}`
+
+    case 'Identifier':
+      return `${(node as Identifier).name.split('-').join('_')}`
 
     case 'ExpressionStatement':
       return `${generate((node as ExpressionStatement).expression)};`

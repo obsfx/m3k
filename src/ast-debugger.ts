@@ -1,4 +1,11 @@
-import { Node, BinaryExpression, Literal, AST, UnaryExpression } from './types/ast.types'
+import {
+  Node,
+  BinaryExpression,
+  Literal,
+  AST,
+  UnaryExpression,
+  VariableDeclarator,
+} from './types/ast.types'
 import { Visitor } from './types/visitor.types'
 
 import { traverse } from './traverser'
@@ -7,6 +14,36 @@ let depth: number = 0
 
 const debugVisitor: Visitor = {
   Program: {
+    enter: (node: Node) => {
+      console.log(`${' '.repeat(depth * 2)}${node.type}`)
+      depth++
+    },
+    exit: () => {
+      depth--
+    },
+  },
+
+  VariableDeclaration: {
+    enter: (node: Node) => {
+      console.log(`${' '.repeat(depth * 2)}${node.type}`)
+      depth++
+    },
+    exit: () => {
+      depth--
+    },
+  },
+
+  VariableDeclarator: {
+    enter: (node: Node) => {
+      console.log(`${' '.repeat(depth * 2)}${node.type} ${(node as VariableDeclarator).id.name}`)
+      depth++
+    },
+    exit: () => {
+      depth--
+    },
+  },
+
+  Identifier: {
     enter: (node: Node) => {
       console.log(`${' '.repeat(depth * 2)}${node.type}`)
       depth++

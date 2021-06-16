@@ -8,7 +8,11 @@ import { generate } from './code-generator'
 
 import { debugAST } from './ast-debugger'
 
-const test = `(- 1 (+ 45 12 41))`
+const test = `
+(define r 5)
+(define degisken-falan 20)
+(- 1 (+ r degisken-falan))
+`
 
 // console.log(test)
 //
@@ -23,7 +27,11 @@ const run = () => {
   console.log(`input: `, test)
   console.log('-------------------')
   const tokens: Token[] = tokenize(test)
+  //console.log(tokens)
+  //console.log('-------------------')
   const ast: AST = parse(tokens)
+  //console.log(ast)
+  //console.log('-------------------')
   const transformedAST: AST = transform(ast)
   debugAST(transformedAST)
   const code: string = generate(transformedAST)

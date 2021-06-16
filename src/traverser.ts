@@ -5,6 +5,8 @@ import {
   BinaryExpression,
   ExpressionStatement,
   UnaryExpression,
+  VariableDeclaration,
+  VariableDeclarator,
 } from './types/ast.types'
 import { VisitorMethods, Visitor } from './types/visitor.types'
 
@@ -25,6 +27,17 @@ export const traverse = (ast: AST, visitor: Visitor): void => {
     switch (node.type) {
       case 'Program':
         traverseArray((node as AST).body, node)
+        break
+
+      case 'VariableDeclaration':
+        traverseArray((node as VariableDeclaration).declarations, node)
+        break
+
+      case 'VariableDeclarator':
+        traverseNode((node as VariableDeclarator).init, node)
+        break
+
+      case 'Identifier':
         break
 
       case 'ExpressionStatement':

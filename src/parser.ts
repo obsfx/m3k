@@ -1,7 +1,15 @@
 import { TokenType, Token } from './types/token.types'
-import { AST, UnaryExpression, BinaryExpression, Literal } from './types/ast.types'
+import {
+  AST,
+  UnaryExpression,
+  BinaryExpression,
+  Literal,
+  VariableDeclarator,
+  Identifier,
+  VariableDeclaration,
+} from './types/ast.types'
 
-type WalkResult = BinaryExpression | UnaryExpression | Literal
+type WalkResult = VariableDeclaration | BinaryExpression | UnaryExpression | Literal
 
 export const parse = (tokens: Token[]): AST => {
   let ast: AST = {
@@ -10,12 +18,17 @@ export const parse = (tokens: Token[]): AST => {
   }
   let current: number = 0
 
+  const VARIABLES_MAP: Map<string, UnaryExpression | BinaryExpression | Literal> = new Map<
+    string,
+    UnaryExpression | BinaryExpression | Literal
+  >()
+
   const consume = (): Token => {
     return tokens[current++]
   }
 
-  const peek = (): Token => {
-    return tokens[current]
+  const peek = (offet: number = 0): Token => {
+    return tokens[current + offet]
   }
 
   const before = (): Token => {
@@ -108,6 +121,71 @@ export const parse = (tokens: Token[]): AST => {
         consume()
 
         return node
+      }
+
+      case TokenType.IDENTIFIER: {
+        switch (token.value.toString()) {
+          case 'define': {
+            if (!before() || before().type !== TokenType.OPEN_PAREN) {
+              throw new Error('Syntax error: Please check the paranthesis openings')
+            }
+
+            if (peek().type !== TokenType.IDENTIFIER) {
+              throw new Error(`Unexpected token: ${peek().type}`)
+            }
+
+            const name: string = consume().value.toString()
+
+            if (VARIABLES_MAP.has(name)) {
+              throw new Error(`${name} is already defined.`)
+            }
+
+            const id: Identifier = {
+              type: 'Identifier',
+              name,
+            }
+
+            const init: WalkResult = walk()
+
+            const declarations: VariableDeclarator = {
+              type: 'VariableDeclarator',
+              id,
+              init: init as UnaryExpression | BinaryExpression | Literal,
+            }
+
+            const node: VariableDeclaration = {
+              type: 'VariableDeclaration',
+              declarations: [declarations],
+              kind: 'let',
+            }
+
+            // consume the close paren
+            consume()
+
+            VARIABLES_MAP.set(name, init as UnaryExpression | BinaryExpression | Literal)
+
+            return node
+          }
+
+          case 'set!':
+            break
+
+          default: {
+            const value: UnaryExpression | BinaryExpression | Literal | undefined =
+              VARIABLES_MAP.get(token.value.toString())
+
+            if (value) {
+              return value
+            }
+
+            throw new Error(`Undefined identifier: ${token.value}`)
+          }
+        }
+
+        return {
+          type: 'Literal',
+          value: 1,
+        }
       }
 
       default:

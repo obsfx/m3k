@@ -64,6 +64,7 @@ export const tokenize = (input: string): Token[] => {
         tokens.push({ type: TokenType.EQUAL, value: '' })
         break
 
+      case '\n':
       case ' ':
         break
 
@@ -77,6 +78,14 @@ export const tokenize = (input: string): Token[] => {
             }
 
             tokens.push({ type: TokenType.NUMBER, value: Number(numbers) })
+          } else if (/^[A-Za-z0-9_@-]*$/.test(char)) {
+            let identifier: string = char
+
+            while (/^[A-Za-z0-9_@.\/-]*$/.test(peek())) {
+              identifier += consume()
+            }
+
+            tokens.push({ type: TokenType.IDENTIFIER, value: identifier })
           } else {
             throw new Error(`Unexpected character: ${char}`)
           }
