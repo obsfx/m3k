@@ -1,4 +1,11 @@
-import { Node, BinaryExpression, Literal, AST, ExpressionStatement } from './types/ast.types'
+import {
+  Node,
+  BinaryExpression,
+  Literal,
+  AST,
+  ExpressionStatement,
+  UnaryExpression,
+} from './types/ast.types'
 
 export const generate = (node: Node): string => {
   switch (node.type) {
@@ -12,6 +19,9 @@ export const generate = (node: Node): string => {
       return `${generate((node as BinaryExpression).left)} ${
         (node as BinaryExpression).operator
       } ${generate((node as BinaryExpression).right)}`
+
+    case 'UnaryExpression':
+      return `${(node as UnaryExpression).operator} ${generate((node as UnaryExpression).argument)}`
 
     case 'Literal':
       return `${(node as Literal).value}`

@@ -1,4 +1,11 @@
-import { AST, NodeType, Node, BinaryExpression, ExpressionStatement } from './types/ast.types'
+import {
+  AST,
+  NodeType,
+  Node,
+  BinaryExpression,
+  ExpressionStatement,
+  UnaryExpression,
+} from './types/ast.types'
 import { VisitorMethods, Visitor } from './types/visitor.types'
 
 export const traverse = (ast: AST, visitor: Visitor): void => {
@@ -27,6 +34,10 @@ export const traverse = (ast: AST, visitor: Visitor): void => {
       case 'BinaryExpression':
         traverseNode((node as BinaryExpression).left, node)
         traverseNode((node as BinaryExpression).right, node)
+        break
+
+      case 'UnaryExpression':
+        traverseNode((node as UnaryExpression).argument, node)
         break
 
       case 'Literal':

@@ -1,7 +1,7 @@
 import { TokenType, Token } from './types/token.types'
-import { AST, BinaryExpression, Literal } from './types/ast.types'
+import { AST, UnaryExpression, BinaryExpression, Literal } from './types/ast.types'
 
-type WalkResult = BinaryExpression | Literal
+type WalkResult = BinaryExpression | UnaryExpression | Literal
 
 export const parse = (tokens: Token[]): AST => {
   let ast: AST = {
@@ -18,7 +18,14 @@ export const parse = (tokens: Token[]): AST => {
     return tokens[current]
   }
 
-  const constructBinaryExpressions = (params: WalkResult[], operator: string): BinaryExpression => {
+  const before = (): Token => {
+    return tokens[current - 2]
+  }
+
+  const constructBinaryExpressions = (
+    params: WalkResult[],
+    operator: string
+  ): UnaryExpression | BinaryExpression => {
     const right: WalkResult | undefined = params.pop()
     const left: WalkResult | null | undefined =
       params.length === 0
@@ -32,14 +39,24 @@ export const parse = (tokens: Token[]): AST => {
     }
 
     if (!left) {
-      throw new Error(`Unexpected binary expression operand`)
+      if (operator === '*' || operator === '/') {
+        throw new Error(`Unexpected token: ${operator}`)
+      }
+
+      const node: UnaryExpression = {
+        type: 'UnaryExpression',
+        operator,
+        argument: right as Literal,
+      }
+
+      return node
     }
 
     const node: BinaryExpression = {
       type: 'BinaryExpression',
-      left,
+      left: left as Literal,
       operator,
-      right,
+      right: right as Literal,
     }
 
     return node
@@ -51,11 +68,7 @@ export const parse = (tokens: Token[]): AST => {
     switch (token.type) {
       case TokenType.OPEN_PAREN: {
         const node: WalkResult = walk()
-        if (node.type === 'BinaryExpression') {
-          return node
-        }
-
-        throw new Error(`Unexpected inner expression or statement: ${node ? node.type : 'null'}`)
+        return node
       }
 
       case TokenType.NUMBER: {
@@ -71,14 +84,25 @@ export const parse = (tokens: Token[]): AST => {
       case TokenType.MINUS:
       case TokenType.STAR:
       case TokenType.SLASH: {
+        if (!before() || before().type !== TokenType.OPEN_PAREN) {
+          throw new Error('Syntax error: Please check the paranthesis openings')
+        }
+
         const operator: string = token.value.toString()
 
         const params: WalkResult[] = []
         while (peek().type !== TokenType.CLOSE_PAREN) {
           params.push(walk())
+
+          if (!peek()) {
+            throw new Error('Syntax error: Unclosed paranthesis')
+          }
         }
 
-        const node: BinaryExpression = constructBinaryExpressions(params, operator)
+        const node: BinaryExpression | UnaryExpression = constructBinaryExpressions(
+          params,
+          operator
+        )
 
         // consume the close paren
         consume()
@@ -93,11 +117,7 @@ export const parse = (tokens: Token[]): AST => {
 
   while (current < tokens.length) {
     const node: WalkResult = walk()
-    if (node.type !== 'BinaryExpression') {
-      throw new Error(`Undefined expression: ${node.type}`)
-    }
-
-    ast.body.push(node)
+    ast.body.push(node as BinaryExpression | UnaryExpression)
   }
 
   return ast

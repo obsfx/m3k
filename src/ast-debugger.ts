@@ -1,4 +1,4 @@
-import { Node, BinaryExpression, Literal, AST } from './types/ast.types'
+import { Node, BinaryExpression, Literal, AST, UnaryExpression } from './types/ast.types'
 import { Visitor } from './types/visitor.types'
 
 import { traverse } from './traverser'
@@ -29,6 +29,16 @@ const debugVisitor: Visitor = {
   BinaryExpression: {
     enter: (node: Node) => {
       console.log(`${' '.repeat(depth * 2)}${node.type} ${(node as BinaryExpression).operator}`)
+      depth++
+    },
+    exit: () => {
+      depth--
+    },
+  },
+
+  UnaryExpression: {
+    enter: (node: Node) => {
+      console.log(`${' '.repeat(depth * 2)}${node.type} ${(node as UnaryExpression).operator}`)
       depth++
     },
     exit: () => {

@@ -1,4 +1,9 @@
-export type NodeType = 'Program' | 'ExpressionStatement' | 'BinaryExpression' | 'Literal'
+export type NodeType =
+  | 'Program'
+  | 'ExpressionStatement'
+  | 'UnaryExpression'
+  | 'BinaryExpression'
+  | 'Literal'
 
 export interface Node {
   readonly type: NodeType
@@ -9,19 +14,25 @@ export interface Literal extends Node {
   value: string | boolean | null | number
 }
 
+export interface UnaryExpression extends Node {
+  type: 'UnaryExpression'
+  operator: string
+  argument: Literal
+}
+
 export interface BinaryExpression extends Node {
   type: 'BinaryExpression'
-  left: BinaryExpression | Literal
+  left: UnaryExpression | BinaryExpression | Literal
   operator: string
-  right: BinaryExpression | Literal
+  right: UnaryExpression | BinaryExpression | Literal
 }
 
 export interface ExpressionStatement extends Node {
   type: 'ExpressionStatement'
-  expression: BinaryExpression
+  expression: BinaryExpression | UnaryExpression
 }
 
 export interface AST extends Node {
   type: 'Program'
-  body: (ExpressionStatement | BinaryExpression)[]
+  body: (ExpressionStatement | BinaryExpression | UnaryExpression)[]
 }

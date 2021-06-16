@@ -65,7 +65,6 @@ export const tokenize = (input: string): Token[] => {
         break
 
       case ' ':
-        //tokens.push({ type: TokenType.SPACE, value: '' })
         break
 
       default:
