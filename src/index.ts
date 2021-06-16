@@ -3,10 +3,12 @@ import { AST } from './types/ast.types'
 
 import { tokenize } from './tokenizer'
 import { parse } from './parser'
-import { traverse } from './traverser'
-import debugVisitor from './debug-visitor'
+import { transform } from './transformer'
+import { generate } from './code-generator'
 
-const test = `(+ 5 (* 4 12) 5) (+ 12 (- 5 4))`
+//import { debugAST } from './ast-debugger'
+
+const test = `(+ 5 15 (* 4 21 15 21 45 71 (/ 47 12 5))) (+ 45 12)`
 
 // console.log(test)
 //
@@ -18,12 +20,13 @@ const test = `(+ 5 (* 4 12) 5) (+ 12 (- 5 4))`
 // setInterval(() => {})
 
 const run = () => {
+  console.log(`input: `, test)
+  console.log('-------------------')
   const tokens: Token[] = tokenize(test)
   const ast: AST = parse(tokens)
-
-  console.log(test)
-
-  traverse(ast, debugVisitor)
+  const transformedAST: AST = transform(ast)
+  const code: string = generate(transformedAST)
+  console.log(code)
 }
 
 run()

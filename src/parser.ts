@@ -35,7 +35,7 @@ export const parse = (tokens: Token[]): AST => {
       throw new Error(`Unexpected binary expression operand`)
     }
 
-    let node: BinaryExpression = {
+    const node: BinaryExpression = {
       type: 'BinaryExpression',
       left,
       operator,
@@ -61,7 +61,7 @@ export const parse = (tokens: Token[]): AST => {
       case TokenType.NUMBER: {
         let node: Literal = {
           type: 'Literal',
-          raw: token.value,
+          value: token.value,
         }
 
         return node

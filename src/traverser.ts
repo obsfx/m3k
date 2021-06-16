@@ -1,4 +1,4 @@
-import { AST, Node, BinaryExpression } from './types/ast.types'
+import { AST, NodeType, Node, BinaryExpression, ExpressionStatement } from './types/ast.types'
 import { VisitorMethods, Visitor } from './types/visitor.types'
 
 export const traverse = (ast: AST, visitor: Visitor): void => {
@@ -9,13 +9,19 @@ export const traverse = (ast: AST, visitor: Visitor): void => {
   }
 
   const traverseNode = (node: Node, parent: Node): void => {
-    const methods: VisitorMethods = visitor[node.type]
+    const methods: VisitorMethods = visitor[node.type as NodeType]
 
-    methods.enter(node, parent)
+    if (methods && methods.enter) {
+      methods.enter(node, parent)
+    }
 
     switch (node.type) {
       case 'Program':
         traverseArray((node as AST).body, node)
+        break
+
+      case 'ExpressionStatement':
+        traverseNode((node as ExpressionStatement).expression, node)
         break
 
       case 'BinaryExpression':
@@ -30,7 +36,9 @@ export const traverse = (ast: AST, visitor: Visitor): void => {
         throw new Error(`Undefined AST node type: ${node.type}`)
     }
 
-    methods.exit(node, parent)
+    if (methods && methods.exit) {
+      methods.exit(node, parent)
+    }
   }
 
   traverseNode(ast, ast)
