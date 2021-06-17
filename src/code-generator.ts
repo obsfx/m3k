@@ -8,6 +8,7 @@ import {
   VariableDeclaration,
   VariableDeclarator,
   Identifier,
+  AssignmentExpression,
 } from './types/ast.types'
 
 export const generate = (node: Node): string => {
@@ -30,6 +31,11 @@ export const generate = (node: Node): string => {
 
     case 'ExpressionStatement':
       return `${generate((node as ExpressionStatement).expression)};`
+
+    case 'AssignmentExpression':
+      return `${generate((node as AssignmentExpression).left)} ${
+        (node as AssignmentExpression).operator
+      } ${generate((node as AssignmentExpression).right)}`
 
     case 'BinaryExpression':
       return `${generate((node as BinaryExpression).left)} ${

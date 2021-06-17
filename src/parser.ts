@@ -7,9 +7,16 @@ import {
   VariableDeclarator,
   Identifier,
   VariableDeclaration,
+  AssignmentExpression,
+  ExpressionStatement,
 } from './types/ast.types'
 
-type WalkResult = VariableDeclaration | BinaryExpression | UnaryExpression | Literal
+type WalkResult =
+  | ExpressionStatement
+  | VariableDeclaration
+  | BinaryExpression
+  | UnaryExpression
+  | Literal
 
 export const parse = (tokens: Token[]): AST => {
   let ast: AST = {
@@ -18,10 +25,8 @@ export const parse = (tokens: Token[]): AST => {
   }
   let current: number = 0
 
-  const VARIABLES_MAP: Map<string, UnaryExpression | BinaryExpression | Literal> = new Map<
-    string,
-    UnaryExpression | BinaryExpression | Literal
-  >()
+  type VariableMapValue = ExpressionStatement | UnaryExpression | BinaryExpression | Literal
+  const VARIABLES_MAP: Map<string, VariableMapValue> = new Map<string, VariableMapValue>()
 
   const consume = (): Token => {
     return tokens[current++]
@@ -162,17 +167,55 @@ export const parse = (tokens: Token[]): AST => {
             // consume the close paren
             consume()
 
-            VARIABLES_MAP.set(name, init as UnaryExpression | BinaryExpression | Literal)
+            VARIABLES_MAP.set(name, init as VariableMapValue)
 
             return node
           }
 
-          case 'set!':
-            break
+          case 'set!': {
+            if (!before() || before().type !== TokenType.OPEN_PAREN) {
+              throw new Error('Syntax error: Please check the paranthesis openings')
+            }
+
+            if (peek().type !== TokenType.IDENTIFIER) {
+              throw new Error(`Unexpected token: ${peek().type}`)
+            }
+
+            const name: string = consume().value.toString()
+
+            if (!VARIABLES_MAP.has(name)) {
+              throw new Error(`${name} is not defined.`)
+            }
+
+            const id: Identifier = {
+              type: 'Identifier',
+              name,
+            }
+
+            const right: WalkResult = walk()
+
+            const expression: AssignmentExpression = {
+              type: 'AssignmentExpression',
+              left: id,
+              operator: '=',
+              right: right as UnaryExpression | BinaryExpression | Literal,
+            }
+
+            const node: ExpressionStatement = {
+              type: 'ExpressionStatement',
+              expression,
+            }
+
+            // consume the close paren
+            consume()
+
+            VARIABLES_MAP.set(name, right as VariableMapValue)
+
+            return node
+          }
 
           default: {
-            const value: UnaryExpression | BinaryExpression | Literal | undefined =
-              VARIABLES_MAP.get(token.value.toString())
+            const value: VariableMapValue | undefined = VARIABLES_MAP.get(token.value.toString())
 
             if (value) {
               return value
@@ -180,11 +223,6 @@ export const parse = (tokens: Token[]): AST => {
 
             throw new Error(`Undefined identifier: ${token.value}`)
           }
-        }
-
-        return {
-          type: 'Literal',
-          value: 1,
         }
       }
 

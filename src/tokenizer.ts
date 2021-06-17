@@ -81,7 +81,7 @@ export const tokenize = (input: string): Token[] => {
           } else if (/^[A-Za-z0-9_@-]*$/.test(char)) {
             let identifier: string = char
 
-            while (/^[A-Za-z0-9_@.\/-]*$/.test(peek())) {
+            while (/^[A-Za-z0-9_!@-]*$/.test(peek())) {
               identifier += consume()
             }
 

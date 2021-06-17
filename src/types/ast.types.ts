@@ -7,6 +7,7 @@ export type NodeType =
   | 'Identifier'
   | 'VariableDeclarator'
   | 'VariableDeclaration'
+  | 'AssignmentExpression'
 
 export interface Node {
   readonly type: NodeType
@@ -49,7 +50,14 @@ export interface BinaryExpression extends Node {
 
 export interface ExpressionStatement extends Node {
   type: 'ExpressionStatement'
-  expression: BinaryExpression | UnaryExpression
+  expression: BinaryExpression | UnaryExpression | AssignmentExpression
+}
+
+export interface AssignmentExpression extends Node {
+  type: 'AssignmentExpression'
+  left: Identifier
+  operator: '='
+  right: UnaryExpression | BinaryExpression | Literal
 }
 
 export interface AST extends Node {

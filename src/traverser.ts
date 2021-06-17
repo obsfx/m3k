@@ -7,6 +7,7 @@ import {
   UnaryExpression,
   VariableDeclaration,
   VariableDeclarator,
+  AssignmentExpression,
 } from './types/ast.types'
 import { VisitorMethods, Visitor } from './types/visitor.types'
 
@@ -37,11 +38,13 @@ export const traverse = (ast: AST, visitor: Visitor): void => {
         traverseNode((node as VariableDeclarator).init, node)
         break
 
-      case 'Identifier':
-        break
-
       case 'ExpressionStatement':
         traverseNode((node as ExpressionStatement).expression, node)
+        break
+
+      case 'AssignmentExpression':
+        traverseNode((node as AssignmentExpression).left, node)
+        traverseNode((node as AssignmentExpression).right, node)
         break
 
       case 'BinaryExpression':
@@ -53,6 +56,7 @@ export const traverse = (ast: AST, visitor: Visitor): void => {
         traverseNode((node as UnaryExpression).argument, node)
         break
 
+      case 'Identifier':
       case 'Literal':
         break
 

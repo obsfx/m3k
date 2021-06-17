@@ -63,6 +63,16 @@ const debugVisitor: Visitor = {
     },
   },
 
+  AssignmentExpression: {
+    enter: (node: Node) => {
+      console.log(`${' '.repeat(depth * 2)}${node.type}`)
+      depth++
+    },
+    exit: () => {
+      depth--
+    },
+  },
+
   BinaryExpression: {
     enter: (node: Node) => {
       console.log(`${' '.repeat(depth * 2)}${node.type} ${(node as BinaryExpression).operator}`)

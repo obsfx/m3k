@@ -12,6 +12,8 @@ const test = `
 (define r 5)
 (define degisken-falan 20)
 (- 1 (+ r degisken-falan))
+(set! r 300)
+(+ r r (* 15 degisken-falan))
 `
 
 // console.log(test)
