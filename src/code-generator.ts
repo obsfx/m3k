@@ -9,6 +9,8 @@ import {
   VariableDeclarator,
   Identifier,
   AssignmentExpression,
+  MemberExpression,
+  CallExpression,
 } from './types/ast.types'
 
 export const generate = (node: Node): string => {
@@ -36,6 +38,16 @@ export const generate = (node: Node): string => {
       return `${generate((node as AssignmentExpression).left)} ${
         (node as AssignmentExpression).operator
       } ${generate((node as AssignmentExpression).right)}`
+
+    case 'CallExpression':
+      return `${generate((node as CallExpression).callee)}(${(node as CallExpression).arguments
+        .map(generate)
+        .join(', ')})`
+
+    case 'MemberExpression':
+      return `${generate((node as MemberExpression).object)}.${generate(
+        (node as MemberExpression).property
+      )}`
 
     case 'BinaryExpression':
       return `${generate((node as BinaryExpression).left)} ${

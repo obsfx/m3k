@@ -8,15 +8,19 @@ import {
   Identifier,
   VariableDeclaration,
   AssignmentExpression,
-  ExpressionStatement,
+  MemberExpression,
+  CallExpression,
 } from './types/ast.types'
 
-type WalkResult =
-  | ExpressionStatement
-  | VariableDeclaration
+type InnerNode =
+  | CallExpression
+  | AssignmentExpression
   | BinaryExpression
   | UnaryExpression
+  | Identifier
   | Literal
+
+type WalkResult = VariableDeclaration | InnerNode
 
 export const parse = (tokens: Token[]): AST => {
   let ast: AST = {
@@ -25,8 +29,7 @@ export const parse = (tokens: Token[]): AST => {
   }
   let current: number = 0
 
-  type VariableMapValue = ExpressionStatement | UnaryExpression | BinaryExpression | Literal
-  const VARIABLES_MAP: Map<string, VariableMapValue> = new Map<string, VariableMapValue>()
+  const definedIdentifiers: string[] = []
 
   const consume = (): Token => {
     return tokens[current++]
@@ -80,6 +83,12 @@ export const parse = (tokens: Token[]): AST => {
     return node
   }
 
+  const checkOpeningParen = (): void => {
+    if (!before() || before().type !== TokenType.OPEN_PAREN) {
+      throw new Error('Syntax error: Please check the paranthesis openings')
+    }
+  }
+
   const walk = (): WalkResult => {
     const token: Token = consume()
 
@@ -89,6 +98,7 @@ export const parse = (tokens: Token[]): AST => {
         return node
       }
 
+      case TokenType.STRING:
       case TokenType.NUMBER: {
         let node: Literal = {
           type: 'Literal',
@@ -103,14 +113,20 @@ export const parse = (tokens: Token[]): AST => {
       case TokenType.STAR:
       case TokenType.SLASH: {
         if (!before() || before().type !== TokenType.OPEN_PAREN) {
-          throw new Error('Syntax error: Please check the paranthesis openings')
+          throw new Error('Syntax error: Please check the opening paranthesis')
         }
 
         const operator: string = token.value.toString()
 
-        const params: WalkResult[] = []
+        const params: InnerNode[] = []
         while (peek().type !== TokenType.CLOSE_PAREN) {
-          params.push(walk())
+          const param: WalkResult = walk()
+
+          if (param.type === 'VariableDeclaration') {
+            throw new Error(`Definition in expression context, where definitions are not allowed`)
+          }
+
+          params.push(param)
 
           if (!peek()) {
             throw new Error('Syntax error: Unclosed paranthesis')
@@ -131,9 +147,7 @@ export const parse = (tokens: Token[]): AST => {
       case TokenType.IDENTIFIER: {
         switch (token.value.toString()) {
           case 'define': {
-            if (!before() || before().type !== TokenType.OPEN_PAREN) {
-              throw new Error('Syntax error: Please check the paranthesis openings')
-            }
+            checkOpeningParen()
 
             if (peek().type !== TokenType.IDENTIFIER) {
               throw new Error(`Unexpected token: ${peek().type}`)
@@ -141,7 +155,7 @@ export const parse = (tokens: Token[]): AST => {
 
             const name: string = consume().value.toString()
 
-            if (VARIABLES_MAP.has(name)) {
+            if (definedIdentifiers.includes(name)) {
               throw new Error(`${name} is already defined.`)
             }
 
@@ -167,15 +181,13 @@ export const parse = (tokens: Token[]): AST => {
             // consume the close paren
             consume()
 
-            VARIABLES_MAP.set(name, init as VariableMapValue)
+            definedIdentifiers.push(name)
 
             return node
           }
 
           case 'set!': {
-            if (!before() || before().type !== TokenType.OPEN_PAREN) {
-              throw new Error('Syntax error: Please check the paranthesis openings')
-            }
+            checkOpeningParen()
 
             if (peek().type !== TokenType.IDENTIFIER) {
               throw new Error(`Unexpected token: ${peek().type}`)
@@ -183,7 +195,7 @@ export const parse = (tokens: Token[]): AST => {
 
             const name: string = consume().value.toString()
 
-            if (!VARIABLES_MAP.has(name)) {
+            if (!definedIdentifiers.includes(name)) {
               throw new Error(`${name} is not defined.`)
             }
 
@@ -194,31 +206,80 @@ export const parse = (tokens: Token[]): AST => {
 
             const right: WalkResult = walk()
 
-            const expression: AssignmentExpression = {
+            const node: AssignmentExpression = {
               type: 'AssignmentExpression',
               left: id,
               operator: '=',
               right: right as UnaryExpression | BinaryExpression | Literal,
             }
 
-            const node: ExpressionStatement = {
-              type: 'ExpressionStatement',
-              expression,
+            // consume the close paren
+            consume()
+
+            return node
+          }
+
+          case 'print': {
+            checkOpeningParen()
+
+            const object: Identifier = {
+              type: 'Identifier',
+              name: 'console',
+            }
+
+            const property: Identifier = {
+              type: 'Identifier',
+              name: 'log',
+            }
+
+            const callee: MemberExpression = {
+              type: 'MemberExpression',
+              object,
+              property,
+            }
+
+            const args: InnerNode[] = []
+
+            while (peek().type !== TokenType.CLOSE_PAREN) {
+              const arg: WalkResult = walk()
+
+              if (arg.type === 'VariableDeclaration') {
+                throw new Error(
+                  `Definition in expression context, where definitions are not allowed`
+                )
+              }
+
+              args.push(arg)
+
+              if (!peek()) {
+                throw new Error('Syntax error: Unclosed paranthesis')
+              }
+            }
+
+            if (args.length === 0) {
+              throw Error(`"print": You must pass one or more arguments`)
+            }
+
+            const node: CallExpression = {
+              type: 'CallExpression',
+              callee,
+              arguments: args,
             }
 
             // consume the close paren
             consume()
 
-            VARIABLES_MAP.set(name, right as VariableMapValue)
-
             return node
           }
 
           default: {
-            const value: VariableMapValue | undefined = VARIABLES_MAP.get(token.value.toString())
+            if (definedIdentifiers.includes(token.value.toString())) {
+              const id: Identifier = {
+                type: 'Identifier',
+                name: token.value.toString(),
+              }
 
-            if (value) {
-              return value
+              return id
             }
 
             throw new Error(`Undefined identifier: ${token.value}`)

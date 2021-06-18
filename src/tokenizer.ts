@@ -64,6 +64,25 @@ export const tokenize = (input: string): Token[] => {
         tokens.push({ type: TokenType.EQUAL, value: '' })
         break
 
+      case '"':
+        {
+          let str: string = ''
+
+          while (current < input.length && peek() !== '"') {
+            str += consume()
+          }
+
+          if (peek() !== '"') {
+            throw new Error('Unexpected character')
+          }
+
+          // consume closing quotes
+          consume()
+
+          tokens.push({ type: TokenType.STRING, value: `"${str}"` })
+        }
+        break
+
       case '\n':
       case ' ':
         break

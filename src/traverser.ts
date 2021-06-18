@@ -8,6 +8,8 @@ import {
   VariableDeclaration,
   VariableDeclarator,
   AssignmentExpression,
+  CallExpression,
+  MemberExpression,
 } from './types/ast.types'
 import { VisitorMethods, Visitor } from './types/visitor.types'
 
@@ -40,6 +42,16 @@ export const traverse = (ast: AST, visitor: Visitor): void => {
 
       case 'ExpressionStatement':
         traverseNode((node as ExpressionStatement).expression, node)
+        break
+
+      case 'CallExpression':
+        traverseNode((node as CallExpression).callee, node)
+        ;(node as CallExpression).arguments.forEach((arg: Node) => traverseNode(arg, node))
+        break
+
+      case 'MemberExpression':
+        traverseNode((node as MemberExpression).object, node)
+        traverseNode((node as MemberExpression).property, node)
         break
 
       case 'AssignmentExpression':

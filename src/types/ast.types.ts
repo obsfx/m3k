@@ -8,59 +8,80 @@ export type NodeType =
   | 'VariableDeclarator'
   | 'VariableDeclaration'
   | 'AssignmentExpression'
+  | 'MemberExpression'
+  | 'CallExpression'
 
 export interface Node {
   readonly type: NodeType
 }
 
 export interface Literal extends Node {
-  type: 'Literal'
+  readonly type: 'Literal'
   value: string | boolean | null | number
 }
 
 export interface Identifier extends Node {
-  type: 'Identifier'
+  readonly type: 'Identifier'
   name: string
 }
 
 export interface VariableDeclarator extends Node {
-  type: 'VariableDeclarator'
+  readonly type: 'VariableDeclarator'
   id: Identifier
   init: UnaryExpression | BinaryExpression | Literal
 }
 
 export interface VariableDeclaration extends Node {
-  type: 'VariableDeclaration'
+  readonly type: 'VariableDeclaration'
   declarations: VariableDeclarator[]
   kind: 'let'
 }
 
 export interface UnaryExpression extends Node {
-  type: 'UnaryExpression'
+  readonly type: 'UnaryExpression'
   operator: string
   argument: Literal
 }
 
 export interface BinaryExpression extends Node {
-  type: 'BinaryExpression'
+  readonly type: 'BinaryExpression'
   left: UnaryExpression | BinaryExpression | Literal
   operator: string
   right: UnaryExpression | BinaryExpression | Literal
 }
 
 export interface ExpressionStatement extends Node {
-  type: 'ExpressionStatement'
-  expression: BinaryExpression | UnaryExpression | AssignmentExpression
+  readonly type: 'ExpressionStatement'
+  expression: CallExpression | BinaryExpression | UnaryExpression | AssignmentExpression
 }
 
 export interface AssignmentExpression extends Node {
-  type: 'AssignmentExpression'
+  readonly type: 'AssignmentExpression'
   left: Identifier
   operator: '='
   right: UnaryExpression | BinaryExpression | Literal
 }
 
+export interface MemberExpression extends Node {
+  readonly type: 'MemberExpression'
+  object: MemberExpression | Identifier
+  property: Identifier
+}
+
+export interface CallExpression extends Node {
+  readonly type: 'CallExpression'
+  callee: MemberExpression
+  arguments: (
+    | UnaryExpression
+    | BinaryExpression
+    | CallExpression
+    | AssignmentExpression
+    | Identifier
+    | Literal
+  )[]
+}
+
 export interface AST extends Node {
-  type: 'Program'
+  readonly type: 'Program'
   body: (ExpressionStatement | BinaryExpression | UnaryExpression)[]
 }
