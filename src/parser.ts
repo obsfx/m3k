@@ -12,6 +12,7 @@ import {
   MemberExpression,
   CallExpression,
   ArrayExpression,
+  SpreadElement,
 } from './types/ast.types'
 
 type WalkResult = VariableDeclaration | InnerNode | null
@@ -379,6 +380,54 @@ export const parse = (tokens: Token[]): AST => {
               type: 'MemberExpression',
               object,
               property,
+            }
+
+            // consume the close paren
+            consume()
+
+            return node
+          }
+
+          case 'append': {
+            checkOpeningParen()
+
+            const elements: SpreadElement[] = []
+
+            while (peek().type !== TokenType.CLOSE_PAREN) {
+              const element: WalkResult = walk()
+
+              if (!element) {
+                throw new Error(`Line ${line + 1}: Node is null`)
+              }
+
+              if (
+                element.type !== 'MemberExpression' &&
+                element.type !== 'CallExpression' &&
+                element.type !== 'ArrayExpression' &&
+                element.type !== 'Identifier'
+              ) {
+                throw new Error(
+                  `Line ${
+                    line + 1
+                  }: Definition in expression context, where definitions are not allowed`
+                )
+              }
+
+              const spreadElement: SpreadElement = {
+                type: 'SpreadElement',
+                argument: element,
+              }
+
+              elements.push(spreadElement)
+
+              if (!peek()) {
+                throw new Error(`Line ${line + 1}: Syntax error: Unclosed paranthesis`)
+              }
+            }
+
+            const node: ArrayExpression = {
+              type: 'ArrayExpression',
+              elements,
             }
 
             // consume the close paren

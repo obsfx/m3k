@@ -11,6 +11,7 @@ import {
   CallExpression,
   MemberExpression,
   ArrayExpression,
+  SpreadElement,
 } from './types/ast.types'
 import { VisitorMethods, Visitor } from './types/visitor.types'
 
@@ -71,6 +72,10 @@ export const traverse = (ast: AST, visitor: Visitor): void => {
 
       case 'UnaryExpression':
         traverseNode((node as UnaryExpression).argument, node)
+        break
+
+      case 'SpreadElement':
+        traverseNode((node as SpreadElement).argument, node)
         break
 
       case 'Identifier':

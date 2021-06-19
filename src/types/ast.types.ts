@@ -11,6 +11,7 @@ export type NodeType =
   | 'MemberExpression'
   | 'CallExpression'
   | 'ArrayExpression'
+  | 'SpreadElement'
 
 export type InnerNode =
   | MemberExpression
@@ -92,7 +93,12 @@ export interface CallExpression extends Node {
 
 export interface ArrayExpression extends Node {
   readonly type: 'ArrayExpression'
-  elements: InnerNode[]
+  elements: (InnerNode | SpreadElement)[]
+}
+
+export interface SpreadElement extends Node {
+  type: 'SpreadElement'
+  argument: MemberExpression | CallExpression | ArrayExpression | Identifier
 }
 
 export interface AST extends Node {

@@ -28,6 +28,10 @@ const test = `
 (print (nth (nth 2 (list 1 2 3)) (list 0 0 0 3 0 0)))
 (set! (nth 2 arr) "set array")
 (print (nth 2 arr))
+(set! arr (list 1 2 3 4))
+(print arr)
+(set! arr (append arr (list 5 6 7 8)))
+(print arr)
 `
 
 // console.log(test)

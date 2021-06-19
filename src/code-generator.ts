@@ -12,6 +12,7 @@ import {
   MemberExpression,
   CallExpression,
   ArrayExpression,
+  SpreadElement,
 } from './types/ast.types'
 
 export const generate = (node: Node): string => {
@@ -67,6 +68,9 @@ export const generate = (node: Node): string => {
 
     case 'UnaryExpression':
       return `${(node as UnaryExpression).operator} ${generate((node as UnaryExpression).argument)}`
+
+    case 'SpreadElement':
+      return `...${generate((node as SpreadElement).argument)}`
 
     case 'Literal':
       return `${(node as Literal).value}`

@@ -123,6 +123,16 @@ const debugVisitor: Visitor = {
     },
   },
 
+  SpreadElement: {
+    enter: (node: Node) => {
+      console.log(`${' '.repeat(depth * 2)}${node.type}`)
+      depth++
+    },
+    exit: () => {
+      depth--
+    },
+  },
+
   Literal: {
     enter: (node: Node) => {
       console.log(`${' '.repeat(depth * 2)}${node.type} ${(node as Literal).value}`)
