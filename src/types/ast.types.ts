@@ -73,15 +73,15 @@ export interface ExpressionStatement extends Node {
 
 export interface AssignmentExpression extends Node {
   readonly type: 'AssignmentExpression'
-  left: Identifier
+  left: MemberExpression | Identifier
   operator: '='
-  right: UnaryExpression | BinaryExpression | Literal
+  right: InnerNode
 }
 
 export interface MemberExpression extends Node {
   readonly type: 'MemberExpression'
-  object: MemberExpression | ArrayExpression | Identifier
-  property: Identifier | Literal
+  object: MemberExpression | CallExpression | ArrayExpression | Identifier | Literal
+  property: MemberExpression | CallExpression | ArrayExpression | Identifier | Literal
 }
 
 export interface CallExpression extends Node {

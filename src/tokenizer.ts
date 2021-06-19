@@ -84,6 +84,9 @@ export const tokenize = (input: string): Token[] => {
         break
 
       case '\n':
+        tokens.push({ type: TokenType.NEWLINE, value: '' })
+        break
+
       case ' ':
         break
 

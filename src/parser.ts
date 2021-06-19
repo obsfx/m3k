@@ -14,7 +14,7 @@ import {
   ArrayExpression,
 } from './types/ast.types'
 
-type WalkResult = VariableDeclaration | InnerNode
+type WalkResult = VariableDeclaration | InnerNode | null
 
 export const parse = (tokens: Token[]): AST => {
   let ast: AST = {
@@ -22,11 +22,12 @@ export const parse = (tokens: Token[]): AST => {
     body: [],
   }
   let current: number = 0
+  let line: number = 0
 
   const definedIdentifiers: string[] = []
 
-  const consume = (): Token => {
-    return tokens[current++]
+  const consume = (): Token | null => {
+    return tokens[current++] || null
   }
 
   const peek = (offet: number = 0): Token => {
@@ -50,12 +51,12 @@ export const parse = (tokens: Token[]): AST => {
         : constructBinaryExpressions(params, operator)
 
     if (!right) {
-      throw new Error(`Missing binary expression operands`)
+      throw new Error(`Line ${line + 1}: Missing binary expression operands`)
     }
 
     if (!left) {
       if (operator === '*' || operator === '/') {
-        throw new Error(`Unexpected token: ${operator}`)
+        throw new Error(`Line ${line + 1}: Unexpected token: ${operator}`)
       }
 
       const node: UnaryExpression = {
@@ -79,12 +80,16 @@ export const parse = (tokens: Token[]): AST => {
 
   const checkOpeningParen = (): void => {
     if (!before() || before().type !== TokenType.OPEN_PAREN) {
-      throw new Error('Syntax error: Please check the paranthesis openings')
+      throw new Error(`Line ${line + 1}: Syntax error: Please check the paranthesis openings`)
     }
   }
 
   const walk = (): WalkResult => {
-    const token: Token = consume()
+    const token: Token | null = consume()
+
+    if (!token) {
+      return null
+    }
 
     switch (token.type) {
       case TokenType.OPEN_PAREN: {
@@ -102,12 +107,16 @@ export const parse = (tokens: Token[]): AST => {
         return node
       }
 
+      case TokenType.NEWLINE:
+        line++
+        return walk()
+
       case TokenType.PLUS:
       case TokenType.MINUS:
       case TokenType.STAR:
       case TokenType.SLASH: {
         if (!before() || before().type !== TokenType.OPEN_PAREN) {
-          throw new Error('Syntax error: Please check the opening paranthesis')
+          throw new Error('Line ${line + 1}: Syntax error: Please check the opening paranthesis')
         }
 
         const operator: string = token.value.toString()
@@ -116,14 +125,22 @@ export const parse = (tokens: Token[]): AST => {
         while (peek().type !== TokenType.CLOSE_PAREN) {
           const param: WalkResult = walk()
 
-          if (param.type === 'VariableDeclaration') {
-            throw new Error(`Definition in expression context, where definitions are not allowed`)
+          if (param && param.type === 'VariableDeclaration') {
+            throw new Error(
+              `Line ${
+                line + 1
+              }: Definition in expression context, where definitions are not allowed`
+            )
+          }
+
+          if (!param) {
+            throw new Error(`Line ${line + 1}: Node is null`)
           }
 
           params.push(param)
 
           if (!peek()) {
-            throw new Error('Syntax error: Unclosed paranthesis')
+            throw new Error(`Line ${line + 1}: Syntax error: Unclosed paranthesis`)
           }
         }
 
@@ -144,13 +161,19 @@ export const parse = (tokens: Token[]): AST => {
             checkOpeningParen()
 
             if (peek().type !== TokenType.IDENTIFIER) {
-              throw new Error(`Unexpected token: ${peek().type}`)
+              throw new Error(`Line ${line + 1}: Unexpected token: ${peek().type}`)
             }
 
-            const name: string = consume().value.toString()
+            const idToken: Token | null = consume()
+
+            if (!idToken) {
+              throw new Error(`Line ${line + 1}: Token is null`)
+            }
+
+            const name: string = idToken.value.toString()
 
             if (definedIdentifiers.includes(name)) {
-              throw new Error(`${name} is already defined.`)
+              throw new Error(`Line ${line + 1}: ${name} is already defined.`)
             }
 
             const id: Identifier = {
@@ -183,28 +206,35 @@ export const parse = (tokens: Token[]): AST => {
           case 'set!': {
             checkOpeningParen()
 
-            if (peek().type !== TokenType.IDENTIFIER) {
-              throw new Error(`Unexpected token: ${peek().type}`)
+            const left: WalkResult = walk()
+
+            if (!left) {
+              throw new Error(`Line ${line + 1}: Node is null`)
             }
 
-            const name: string = consume().value.toString()
-
-            if (!definedIdentifiers.includes(name)) {
-              throw new Error(`${name} is not defined.`)
-            }
-
-            const id: Identifier = {
-              type: 'Identifier',
-              name,
+            if (left.type !== 'MemberExpression' && left.type !== 'Identifier') {
+              throw new Error(`Line ${line + 1}: Unexpected token: ${left.type}`)
             }
 
             const right: WalkResult = walk()
 
+            if (!right) {
+              throw new Error(`Line ${line + 1}: Node is null`)
+            }
+
+            if (right.type === 'VariableDeclaration') {
+              throw new Error(
+                `Line ${
+                  line + 1
+                }: Definition in expression context, where definitions are not allowed`
+              )
+            }
+
             const node: AssignmentExpression = {
               type: 'AssignmentExpression',
-              left: id,
+              left,
               operator: '=',
-              right: right as UnaryExpression | BinaryExpression | Literal,
+              right,
             }
 
             // consume the close paren
@@ -237,21 +267,27 @@ export const parse = (tokens: Token[]): AST => {
             while (peek().type !== TokenType.CLOSE_PAREN) {
               const arg: WalkResult = walk()
 
+              if (!arg) {
+                throw new Error(`Line ${line + 1}: Node is null`)
+              }
+
               if (arg.type === 'VariableDeclaration') {
                 throw new Error(
-                  `Definition in expression context, where definitions are not allowed`
+                  `Line ${
+                    line + 1
+                  }: Definition in expression context, where definitions are not allowed`
                 )
               }
 
               args.push(arg)
 
               if (!peek()) {
-                throw new Error('Syntax error: Unclosed paranthesis')
+                throw new Error(`Line ${line + 1}: Syntax error: Unclosed paranthesis`)
               }
             }
 
             if (args.length === 0) {
-              throw Error(`"print": You must pass one or more arguments`)
+              throw Error(`Line ${line + 1}: "print": You must pass one or more arguments`)
             }
 
             const node: CallExpression = {
@@ -274,16 +310,22 @@ export const parse = (tokens: Token[]): AST => {
             while (peek().type !== TokenType.CLOSE_PAREN) {
               const element: WalkResult = walk()
 
+              if (!element) {
+                throw new Error(`Line ${line + 1}: Node is null`)
+              }
+
               if (element.type === 'VariableDeclaration') {
                 throw new Error(
-                  `Definition in expression context, where definitions are not allowed`
+                  `Line ${
+                    line + 1
+                  }: Definition in expression context, where definitions are not allowed`
                 )
               }
 
               elements.push(element)
 
               if (!peek()) {
-                throw new Error('Syntax error: Unclosed paranthesis')
+                throw new Error(`Line ${line + 1}: Syntax error: Unclosed paranthesis`)
               }
             }
 
@@ -300,25 +342,42 @@ export const parse = (tokens: Token[]): AST => {
 
           case 'nth': {
             checkOpeningParen()
+
             const property: WalkResult = walk()
 
-            if (property.type !== 'Literal') {
-              throw new Error(`Error: "nth" expects a Literal as first argument`)
+            if (!property) {
+              throw new Error(`Line ${line + 1}: Node is null`)
             }
 
-            const listArg: WalkResult = walk()
+            if (
+              property.type !== 'MemberExpression' &&
+              property.type !== 'CallExpression' &&
+              property.type !== 'ArrayExpression' &&
+              property.type !== 'Identifier' &&
+              property.type !== 'Literal'
+            ) {
+              throw new Error(`Line ${line + 1}: Error: Unexpected first "nth" argument`)
+            }
 
-            if (listArg.type === 'Identifier' && !definedIdentifiers.includes(listArg.name)) {
-              throw new Error(`Undefined identifier: ${listArg.name}`)
-            } else if (listArg.type !== 'Identifier' && listArg.type !== 'ArrayExpression') {
-              throw new Error(
-                `Error: "nth" expects an ArrayExpression or Literal as second argument`
-              )
+            const object: WalkResult = walk()
+
+            if (!object) {
+              throw new Error(`Line ${line + 1}: Node is null`)
+            }
+
+            if (
+              object.type !== 'MemberExpression' &&
+              object.type !== 'CallExpression' &&
+              object.type !== 'ArrayExpression' &&
+              object.type !== 'Identifier' &&
+              object.type !== 'Literal'
+            ) {
+              throw new Error(`Line ${line + 1}: Error: Unexpected second "nth" argument`)
             }
 
             const node: MemberExpression = {
               type: 'MemberExpression',
-              object: listArg,
+              object,
               property,
             }
 
@@ -329,28 +388,31 @@ export const parse = (tokens: Token[]): AST => {
           }
 
           default: {
-            if (definedIdentifiers.includes(token.value.toString())) {
-              const id: Identifier = {
-                type: 'Identifier',
-                name: token.value.toString(),
-              }
-
-              return id
+            // if (definedIdentifiers.includes(token.value.toString())) {
+            const id: Identifier = {
+              type: 'Identifier',
+              name: token.value.toString(),
             }
 
-            throw new Error(`Undefined identifier: ${token.value}`)
+            return id
+            // }
+
+            //throw new Error(`Line ${line + 1}: Undefined identifier: ${token.value}`)
           }
         }
       }
 
       default:
-        throw new Error(`Undefined token: ${token.type}`)
+        throw new Error(`Line ${line + 1}: Undefined token: ${token.type}`)
     }
   }
 
   while (current < tokens.length) {
     const node: WalkResult = walk()
-    ast.body.push(node as BinaryExpression | UnaryExpression)
+
+    if (node) {
+      ast.body.push(node as BinaryExpression | UnaryExpression)
+    }
   }
 
   return ast

@@ -22,6 +22,12 @@ const test = `
 (define arr (list 5 4 3 5 (set! r 500) (list "test" 42 (list 74))))
 (print arr)
 (print (nth 2 (list 42 "deneme arr" "test")))
+(print (nth 4 arr))
+(print (nth (nth 1 arr) arr))
+(print "array example")
+(print (nth (nth 2 (list 1 2 3)) (list 0 0 0 3 0 0)))
+(set! (nth 2 arr) "set array")
+(print (nth 2 arr))
 `
 
 // console.log(test)
