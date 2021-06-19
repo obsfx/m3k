@@ -11,6 +11,7 @@ import {
   AssignmentExpression,
   MemberExpression,
   CallExpression,
+  ArrayExpression,
 } from './types/ast.types'
 
 export const generate = (node: Node): string => {
@@ -44,10 +45,20 @@ export const generate = (node: Node): string => {
         .map(generate)
         .join(', ')})`
 
-    case 'MemberExpression':
-      return `${generate((node as MemberExpression).object)}.${generate(
-        (node as MemberExpression).property
-      )}`
+    case 'ArrayExpression':
+      return `[${(node as ArrayExpression).elements.map(generate).join(', ')}]`
+
+    case 'MemberExpression': {
+      if ((node as MemberExpression).property.type === 'Identifier') {
+        return `${generate((node as MemberExpression).object)}.${generate(
+          (node as MemberExpression).property
+        )}`
+      } else {
+        return `${generate((node as MemberExpression).object)}[${generate(
+          (node as MemberExpression).property
+        )}]`
+      }
+    }
 
     case 'BinaryExpression':
       return `${generate((node as BinaryExpression).left)} ${

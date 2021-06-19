@@ -1,5 +1,6 @@
 import { TokenType, Token } from './types/token.types'
 import {
+  InnerNode,
   AST,
   UnaryExpression,
   BinaryExpression,
@@ -10,15 +11,8 @@ import {
   AssignmentExpression,
   MemberExpression,
   CallExpression,
+  ArrayExpression,
 } from './types/ast.types'
-
-type InnerNode =
-  | CallExpression
-  | AssignmentExpression
-  | BinaryExpression
-  | UnaryExpression
-  | Identifier
-  | Literal
 
 type WalkResult = VariableDeclaration | InnerNode
 
@@ -264,6 +258,68 @@ export const parse = (tokens: Token[]): AST => {
               type: 'CallExpression',
               callee,
               arguments: args,
+            }
+
+            // consume the close paren
+            consume()
+
+            return node
+          }
+
+          case 'list': {
+            checkOpeningParen()
+
+            const elements: InnerNode[] = []
+
+            while (peek().type !== TokenType.CLOSE_PAREN) {
+              const element: WalkResult = walk()
+
+              if (element.type === 'VariableDeclaration') {
+                throw new Error(
+                  `Definition in expression context, where definitions are not allowed`
+                )
+              }
+
+              elements.push(element)
+
+              if (!peek()) {
+                throw new Error('Syntax error: Unclosed paranthesis')
+              }
+            }
+
+            const node: ArrayExpression = {
+              type: 'ArrayExpression',
+              elements,
+            }
+
+            // consume the close paren
+            consume()
+
+            return node
+          }
+
+          case 'nth': {
+            checkOpeningParen()
+            const property: WalkResult = walk()
+
+            if (property.type !== 'Literal') {
+              throw new Error(`Error: "nth" expects a Literal as first argument`)
+            }
+
+            const listArg: WalkResult = walk()
+
+            if (listArg.type === 'Identifier' && !definedIdentifiers.includes(listArg.name)) {
+              throw new Error(`Undefined identifier: ${listArg.name}`)
+            } else if (listArg.type !== 'Identifier' && listArg.type !== 'ArrayExpression') {
+              throw new Error(
+                `Error: "nth" expects an ArrayExpression or Literal as second argument`
+              )
+            }
+
+            const node: MemberExpression = {
+              type: 'MemberExpression',
+              object: listArg,
+              property,
             }
 
             // consume the close paren

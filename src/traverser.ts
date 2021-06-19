@@ -10,6 +10,7 @@ import {
   AssignmentExpression,
   CallExpression,
   MemberExpression,
+  ArrayExpression,
 } from './types/ast.types'
 import { VisitorMethods, Visitor } from './types/visitor.types'
 
@@ -47,6 +48,10 @@ export const traverse = (ast: AST, visitor: Visitor): void => {
       case 'CallExpression':
         traverseNode((node as CallExpression).callee, node)
         ;(node as CallExpression).arguments.forEach((arg: Node) => traverseNode(arg, node))
+        break
+
+      case 'ArrayExpression':
+        ;(node as ArrayExpression).elements.forEach((element: Node) => traverseNode(element, node))
         break
 
       case 'MemberExpression':

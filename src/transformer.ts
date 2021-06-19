@@ -6,6 +6,7 @@ import {
   UnaryExpression,
   CallExpression,
   AssignmentExpression,
+  ArrayExpression,
 } from './types/ast.types'
 import { Visitor } from './types/visitor.types'
 
@@ -19,6 +20,7 @@ export const transform = (ast: AST): AST => {
       type: 'ExpressionStatement',
       expression: node as
         | CallExpression
+        | ArrayExpression
         | BinaryExpression
         | UnaryExpression
         | AssignmentExpression,
@@ -57,6 +59,14 @@ export const transform = (ast: AST): AST => {
     },
 
     CallExpression: {
+      enter: (node: Node, parent: Node): void => {
+        if (parent.type === 'Program') {
+          wrapWithExpressionStatement(node, parent)
+        }
+      },
+    },
+
+    ArrayExpression: {
       enter: (node: Node, parent: Node): void => {
         if (parent.type === 'Program') {
           wrapWithExpressionStatement(node, parent)

@@ -10,6 +10,17 @@ export type NodeType =
   | 'AssignmentExpression'
   | 'MemberExpression'
   | 'CallExpression'
+  | 'ArrayExpression'
+
+export type InnerNode =
+  | MemberExpression
+  | ArrayExpression
+  | UnaryExpression
+  | BinaryExpression
+  | CallExpression
+  | AssignmentExpression
+  | Identifier
+  | Literal
 
 export interface Node {
   readonly type: NodeType
@@ -52,7 +63,12 @@ export interface BinaryExpression extends Node {
 
 export interface ExpressionStatement extends Node {
   readonly type: 'ExpressionStatement'
-  expression: CallExpression | BinaryExpression | UnaryExpression | AssignmentExpression
+  expression:
+    | CallExpression
+    | ArrayExpression
+    | BinaryExpression
+    | UnaryExpression
+    | AssignmentExpression
 }
 
 export interface AssignmentExpression extends Node {
@@ -64,24 +80,22 @@ export interface AssignmentExpression extends Node {
 
 export interface MemberExpression extends Node {
   readonly type: 'MemberExpression'
-  object: MemberExpression | Identifier
-  property: Identifier
+  object: MemberExpression | ArrayExpression | Identifier
+  property: Identifier | Literal
 }
 
 export interface CallExpression extends Node {
   readonly type: 'CallExpression'
   callee: MemberExpression
-  arguments: (
-    | UnaryExpression
-    | BinaryExpression
-    | CallExpression
-    | AssignmentExpression
-    | Identifier
-    | Literal
-  )[]
+  arguments: InnerNode[]
+}
+
+export interface ArrayExpression extends Node {
+  readonly type: 'ArrayExpression'
+  elements: InnerNode[]
 }
 
 export interface AST extends Node {
   readonly type: 'Program'
-  body: (ExpressionStatement | BinaryExpression | UnaryExpression)[]
+  body: Node[]
 }

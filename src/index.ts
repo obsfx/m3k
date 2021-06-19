@@ -19,6 +19,9 @@ const test = `
 (print "test" test result)
 (set! result "result text")
 (print result)
+(define arr (list 5 4 3 5 (set! r 500) (list "test" 42 (list 74))))
+(print arr)
+(print (nth 2 (list 42 "deneme arr" "test")))
 `
 
 // console.log(test)
@@ -43,6 +46,7 @@ const run = () => {
   //debugAST(transformedAST)
   const code: string = generate(transformedAST)
   console.log(code)
+  console.log('-------------------')
   eval(code)
 }
 
