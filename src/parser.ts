@@ -350,14 +350,12 @@ export const parse = (tokens: Token[]): AST => {
               throw new Error(`Line ${line + 1}: Node is null`)
             }
 
-            if (
-              property.type !== 'MemberExpression' &&
-              property.type !== 'CallExpression' &&
-              property.type !== 'ArrayExpression' &&
-              property.type !== 'Identifier' &&
-              property.type !== 'Literal'
-            ) {
-              throw new Error(`Line ${line + 1}: Error: Unexpected first "nth" argument`)
+            if (property.type === 'VariableDeclaration') {
+              throw new Error(
+                `Line ${
+                  line + 1
+                }: Definition in expression context, where definitions are not allowed`
+              )
             }
 
             const object: WalkResult = walk()
@@ -428,6 +426,164 @@ export const parse = (tokens: Token[]): AST => {
             const node: ArrayExpression = {
               type: 'ArrayExpression',
               elements,
+            }
+
+            // consume the close paren
+            consume()
+
+            return node
+          }
+
+          case 'unshift':
+          case 'push':
+          case 'includes':
+          case 'fill':
+          case 'concat':
+          case 'join':
+          case 'slice':
+          case 'splice': {
+            checkOpeningParen()
+
+            const object: WalkResult = walk()
+
+            if (!object) {
+              throw new Error(`Line ${line + 1}: Node is null`)
+            }
+
+            if (
+              object.type !== 'MemberExpression' &&
+              object.type !== 'CallExpression' &&
+              object.type !== 'ArrayExpression' &&
+              object.type !== 'Identifier'
+            ) {
+              throw new Error(
+                `Line ${
+                  line + 1
+                }: Definition in expression context, where definitions are not allowed`
+              )
+            }
+
+            const property: Identifier = {
+              type: 'Identifier',
+              name: token.value.toString(),
+            }
+
+            const callee: MemberExpression = {
+              type: 'MemberExpression',
+              object,
+              property,
+            }
+
+            const args: InnerNode[] = []
+
+            while (peek().type !== TokenType.CLOSE_PAREN) {
+              const arg: WalkResult = walk()
+
+              if (!arg) {
+                throw new Error(`Line ${line + 1}: Node is null`)
+              }
+
+              if (arg.type === 'VariableDeclaration') {
+                throw new Error(
+                  `Line ${
+                    line + 1
+                  }: Definition in expression context, where definitions are not allowed`
+                )
+              }
+
+              args.push(arg)
+            }
+
+            const node: CallExpression = {
+              type: 'CallExpression',
+              callee,
+              arguments: args,
+            }
+
+            // consume the close paren
+            consume()
+
+            return node
+          }
+
+          case 'shift':
+          case 'pop':
+          case 'reverse': {
+            checkOpeningParen()
+
+            const object: WalkResult = walk()
+
+            if (!object) {
+              throw new Error(`Line ${line + 1}: Node is null`)
+            }
+
+            if (
+              object.type !== 'MemberExpression' &&
+              object.type !== 'CallExpression' &&
+              object.type !== 'ArrayExpression' &&
+              object.type !== 'Identifier'
+            ) {
+              throw new Error(
+                `Line ${
+                  line + 1
+                }: Definition in expression context, where definitions are not allowed`
+              )
+            }
+
+            const property: Identifier = {
+              type: 'Identifier',
+              name: token.value.toString(),
+            }
+
+            const callee: MemberExpression = {
+              type: 'MemberExpression',
+              object,
+              property,
+            }
+
+            const node: CallExpression = {
+              type: 'CallExpression',
+              callee,
+              arguments: [],
+            }
+
+            // consume the close paren
+            consume()
+
+            return node
+          }
+
+          case 'length': {
+            checkOpeningParen()
+
+            const object: WalkResult = walk()
+
+            if (!object) {
+              throw new Error(`Line ${line + 1}: Node is null`)
+            }
+
+            if (
+              object.type !== 'MemberExpression' &&
+              object.type !== 'CallExpression' &&
+              object.type !== 'ArrayExpression' &&
+              object.type !== 'Identifier'
+            ) {
+              throw new Error(
+                `Line ${
+                  line + 1
+                }: Definition in expression context, where definitions are not allowed`
+              )
+            }
+
+            const property: Identifier = {
+              type: 'Identifier',
+              name: 'length',
+            }
+
+            const node: MemberExpression = {
+              type: 'MemberExpression',
+              object,
+              property,
             }
 
             // consume the close paren

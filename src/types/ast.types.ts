@@ -82,7 +82,7 @@ export interface AssignmentExpression extends Node {
 export interface MemberExpression extends Node {
   readonly type: 'MemberExpression'
   object: MemberExpression | CallExpression | ArrayExpression | Identifier | Literal
-  property: MemberExpression | CallExpression | ArrayExpression | Identifier | Literal
+  property: InnerNode
 }
 
 export interface CallExpression extends Node {

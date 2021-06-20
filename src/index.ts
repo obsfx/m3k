@@ -6,7 +6,7 @@ import { parse } from './parser'
 import { transform } from './transformer'
 import { generate } from './code-generator'
 
-// import { debugAST } from './ast-debugger'
+import { debugAST } from './ast-debugger'
 
 const test = `
 (define r 5)
@@ -32,6 +32,26 @@ const test = `
 (print arr)
 (set! arr (append arr (list 5 6 7 8)))
 (print arr)
+(push arr 5 125 151 (list 4 10 15))
+(unshift arr 5 125 151 (list 4 10 15))
+(push (list 15 20 (list 250 5 4)) 5 125 151 (list 4 10 15))
+(pop arr)
+(print (pop (list 15 20 (list 250 5 4))))
+(print (shift (list 15 20 (list 250 5 4))))
+(print (length (reverse (append (list) (list 15 20 (list 250 5 4))))))
+(define arr2 (reverse (append (list) (list 15 20 (list 250 5 4)))))
+(print arr2)
+(print (includes arr2 15))
+(define arr3 (list 0 0 0 0 0))
+(fill arr3 3)
+(print arr3)
+(print (concat arr3 arr2))
+(print (join arr3 ", "))
+(define arr4 (list 1 2 3 4 5 6))
+(print arr4)
+(splice arr4 2 1)
+(print arr4)
+(print (nth (- (length arr4) 1) arr4))
 `
 
 // console.log(test)
@@ -53,7 +73,7 @@ const run = () => {
   //console.log(ast)
   //console.log('-------------------')
   const transformedAST: AST = transform(ast)
-  //debugAST(transformedAST)
+  debugAST(transformedAST)
   const code: string = generate(transformedAST)
   console.log(code)
   console.log('-------------------')
