@@ -592,6 +592,12 @@ export const parse = (tokens: Token[]): AST => {
             return node
           }
 
+          case 'dict': {
+            checkOpeningParen()
+
+            while (peek().type !== TokenType.CLOSE_PAREN) {}
+          }
+
           default: {
             // if (definedIdentifiers.includes(token.value.toString())) {
             const id: Identifier = {
