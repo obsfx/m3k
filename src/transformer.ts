@@ -17,6 +17,7 @@ export const transform = (ast: AST): AST => {
 
   const wrapWithExpressionStatement = (node: Node, parent: Node): void => {
     const newNode: ExpressionStatement = {
+      generaltype: 'Statement',
       type: 'ExpressionStatement',
       expression: node as
         | CallExpression

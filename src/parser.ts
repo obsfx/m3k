@@ -1,24 +1,29 @@
 import { TokenType, Token } from './types/token.types'
 import {
-  InnerNode,
   AST,
   UnaryExpression,
   BinaryExpression,
+  Expression,
+  Declaration,
+  UnaryOperator,
+  BinaryOperator,
   Literal,
-  VariableDeclarator,
   Identifier,
+  VariableDeclarator,
   VariableDeclaration,
   AssignmentExpression,
   MemberExpression,
+  SpreadElement,
   CallExpression,
   ArrayExpression,
-  SpreadElement,
+  Statement,
 } from './types/ast.types'
 
-type WalkResult = VariableDeclaration | InnerNode | null
+type WalkResult = Expression | Declaration | null
 
 export const parse = (tokens: Token[]): AST => {
   let ast: AST = {
+    generaltype: 'Node',
     type: 'Program',
     body: [],
   }
@@ -51,8 +56,15 @@ export const parse = (tokens: Token[]): AST => {
         ? params.pop()
         : constructBinaryExpressions(params, operator)
 
+    // FIXME: operator type consistency
     if (!right) {
       throw new Error(`Line ${line + 1}: Missing binary expression operands`)
+    }
+
+    if (right.generaltype !== 'Expression') {
+      throw new Error(
+        `Line ${line + 1}: Definition in expression context, where definitions are not allowed`
+      )
     }
 
     if (!left) {
@@ -61,19 +73,27 @@ export const parse = (tokens: Token[]): AST => {
       }
 
       const node: UnaryExpression = {
+        generaltype: 'Expression',
         type: 'UnaryExpression',
-        operator,
-        argument: right as Literal,
+        operator: operator as UnaryOperator,
+        argument: right,
       }
 
       return node
     }
 
+    if (left.generaltype !== 'Expression') {
+      throw new Error(
+        `Line ${line + 1}: Definition in expression context, where definitions are not allowed`
+      )
+    }
+
     const node: BinaryExpression = {
+      generaltype: 'Expression',
       type: 'BinaryExpression',
-      left: left as Literal,
-      operator,
-      right: right as Literal,
+      operator: operator as BinaryOperator,
+      left: left,
+      right: right,
     }
 
     return node
@@ -101,6 +121,7 @@ export const parse = (tokens: Token[]): AST => {
       case TokenType.STRING:
       case TokenType.NUMBER: {
         let node: Literal = {
+          generaltype: 'Expression',
           type: 'Literal',
           value: token.value,
         }
@@ -116,26 +137,24 @@ export const parse = (tokens: Token[]): AST => {
       case TokenType.MINUS:
       case TokenType.STAR:
       case TokenType.SLASH: {
-        if (!before() || before().type !== TokenType.OPEN_PAREN) {
-          throw new Error('Line ${line + 1}: Syntax error: Please check the opening paranthesis')
-        }
+        checkOpeningParen()
 
         const operator: string = token.value.toString()
 
-        const params: InnerNode[] = []
+        const params: Expression[] = []
         while (peek().type !== TokenType.CLOSE_PAREN) {
           const param: WalkResult = walk()
 
-          if (param && param.type === 'VariableDeclaration') {
+          if (!param) {
+            throw new Error(`Line ${line + 1}: Node is null`)
+          }
+
+          if (param.generaltype !== 'Expression') {
             throw new Error(
               `Line ${
                 line + 1
               }: Definition in expression context, where definitions are not allowed`
             )
-          }
-
-          if (!param) {
-            throw new Error(`Line ${line + 1}: Node is null`)
           }
 
           params.push(param)
@@ -178,19 +197,34 @@ export const parse = (tokens: Token[]): AST => {
             }
 
             const id: Identifier = {
+              generaltype: 'Expression',
               type: 'Identifier',
               name,
             }
 
             const init: WalkResult = walk()
 
+            if (!init) {
+              throw new Error(`Line ${line + 1}: Node is null`)
+            }
+
+            if (init.generaltype !== 'Expression') {
+              throw new Error(
+                `Line ${
+                  line + 1
+                }: Definition in expression context, where definitions are not allowed`
+              )
+            }
+
             const declarations: VariableDeclarator = {
+              generaltype: 'Node',
               type: 'VariableDeclarator',
               id,
-              init: init as UnaryExpression | BinaryExpression | Literal,
+              init,
             }
 
             const node: VariableDeclaration = {
+              generaltype: 'Declaration',
               type: 'VariableDeclaration',
               declarations: [declarations],
               kind: 'let',
@@ -213,6 +247,14 @@ export const parse = (tokens: Token[]): AST => {
               throw new Error(`Line ${line + 1}: Node is null`)
             }
 
+            if (left.generaltype !== 'Expression') {
+              throw new Error(
+                `Line ${
+                  line + 1
+                }: Definition in expression context, where definitions are not allowed`
+              )
+            }
+
             if (left.type !== 'MemberExpression' && left.type !== 'Identifier') {
               throw new Error(`Line ${line + 1}: Unexpected token: ${left.type}`)
             }
@@ -223,7 +265,7 @@ export const parse = (tokens: Token[]): AST => {
               throw new Error(`Line ${line + 1}: Node is null`)
             }
 
-            if (right.type === 'VariableDeclaration') {
+            if (right.generaltype !== 'Expression') {
               throw new Error(
                 `Line ${
                   line + 1
@@ -232,9 +274,10 @@ export const parse = (tokens: Token[]): AST => {
             }
 
             const node: AssignmentExpression = {
+              generaltype: 'Expression',
               type: 'AssignmentExpression',
-              left,
               operator: '=',
+              left,
               right,
             }
 
@@ -248,22 +291,25 @@ export const parse = (tokens: Token[]): AST => {
             checkOpeningParen()
 
             const object: Identifier = {
+              generaltype: 'Expression',
               type: 'Identifier',
               name: 'console',
             }
 
             const property: Identifier = {
+              generaltype: 'Expression',
               type: 'Identifier',
               name: 'log',
             }
 
             const callee: MemberExpression = {
+              generaltype: 'Expression',
               type: 'MemberExpression',
               object,
               property,
             }
 
-            const args: InnerNode[] = []
+            const args: (Expression | SpreadElement)[] = []
 
             while (peek().type !== TokenType.CLOSE_PAREN) {
               const arg: WalkResult = walk()
@@ -272,7 +318,7 @@ export const parse = (tokens: Token[]): AST => {
                 throw new Error(`Line ${line + 1}: Node is null`)
               }
 
-              if (arg.type === 'VariableDeclaration') {
+              if (arg.generaltype === 'Declaration') {
                 throw new Error(
                   `Line ${
                     line + 1
@@ -292,6 +338,7 @@ export const parse = (tokens: Token[]): AST => {
             }
 
             const node: CallExpression = {
+              generaltype: 'Expression',
               type: 'CallExpression',
               callee,
               arguments: args,
@@ -306,7 +353,7 @@ export const parse = (tokens: Token[]): AST => {
           case 'list': {
             checkOpeningParen()
 
-            const elements: InnerNode[] = []
+            const elements: (Expression | SpreadElement)[] = []
 
             while (peek().type !== TokenType.CLOSE_PAREN) {
               const element: WalkResult = walk()
@@ -315,7 +362,7 @@ export const parse = (tokens: Token[]): AST => {
                 throw new Error(`Line ${line + 1}: Node is null`)
               }
 
-              if (element.type === 'VariableDeclaration') {
+              if (element.generaltype === 'Declaration') {
                 throw new Error(
                   `Line ${
                     line + 1
@@ -331,6 +378,7 @@ export const parse = (tokens: Token[]): AST => {
             }
 
             const node: ArrayExpression = {
+              generaltype: 'Expression',
               type: 'ArrayExpression',
               elements,
             }
@@ -350,7 +398,7 @@ export const parse = (tokens: Token[]): AST => {
               throw new Error(`Line ${line + 1}: Node is null`)
             }
 
-            if (property.type === 'VariableDeclaration') {
+            if (property.generaltype !== 'Expression') {
               throw new Error(
                 `Line ${
                   line + 1
@@ -364,17 +412,16 @@ export const parse = (tokens: Token[]): AST => {
               throw new Error(`Line ${line + 1}: Node is null`)
             }
 
-            if (
-              object.type !== 'MemberExpression' &&
-              object.type !== 'CallExpression' &&
-              object.type !== 'ArrayExpression' &&
-              object.type !== 'Identifier' &&
-              object.type !== 'Literal'
-            ) {
-              throw new Error(`Line ${line + 1}: Error: Unexpected second "nth" argument`)
+            if (object.generaltype !== 'Expression') {
+              throw new Error(
+                `Line ${
+                  line + 1
+                }: Definition in expression context, where definitions are not allowed`
+              )
             }
 
             const node: MemberExpression = {
+              generaltype: 'Expression',
               type: 'MemberExpression',
               object,
               property,
@@ -392,18 +439,13 @@ export const parse = (tokens: Token[]): AST => {
             const elements: SpreadElement[] = []
 
             while (peek().type !== TokenType.CLOSE_PAREN) {
-              const element: WalkResult = walk()
+              const arg: WalkResult = walk()
 
-              if (!element) {
+              if (!arg) {
                 throw new Error(`Line ${line + 1}: Node is null`)
               }
 
-              if (
-                element.type !== 'MemberExpression' &&
-                element.type !== 'CallExpression' &&
-                element.type !== 'ArrayExpression' &&
-                element.type !== 'Identifier'
-              ) {
+              if (arg.generaltype !== 'Expression') {
                 throw new Error(
                   `Line ${
                     line + 1
@@ -412,8 +454,9 @@ export const parse = (tokens: Token[]): AST => {
               }
 
               const spreadElement: SpreadElement = {
+                generaltype: 'Node',
                 type: 'SpreadElement',
-                argument: element,
+                argument: arg,
               }
 
               elements.push(spreadElement)
@@ -424,6 +467,7 @@ export const parse = (tokens: Token[]): AST => {
             }
 
             const node: ArrayExpression = {
+              generaltype: 'Expression',
               type: 'ArrayExpression',
               elements,
             }
@@ -450,12 +494,7 @@ export const parse = (tokens: Token[]): AST => {
               throw new Error(`Line ${line + 1}: Node is null`)
             }
 
-            if (
-              object.type !== 'MemberExpression' &&
-              object.type !== 'CallExpression' &&
-              object.type !== 'ArrayExpression' &&
-              object.type !== 'Identifier'
-            ) {
+            if (object.generaltype !== 'Expression') {
               throw new Error(
                 `Line ${
                   line + 1
@@ -464,17 +503,19 @@ export const parse = (tokens: Token[]): AST => {
             }
 
             const property: Identifier = {
+              generaltype: 'Expression',
               type: 'Identifier',
               name: token.value.toString(),
             }
 
             const callee: MemberExpression = {
+              generaltype: 'Expression',
               type: 'MemberExpression',
               object,
               property,
             }
 
-            const args: InnerNode[] = []
+            const args: (Expression | SpreadElement)[] = []
 
             while (peek().type !== TokenType.CLOSE_PAREN) {
               const arg: WalkResult = walk()
@@ -483,7 +524,7 @@ export const parse = (tokens: Token[]): AST => {
                 throw new Error(`Line ${line + 1}: Node is null`)
               }
 
-              if (arg.type === 'VariableDeclaration') {
+              if (arg.generaltype === 'Declaration') {
                 throw new Error(
                   `Line ${
                     line + 1
@@ -495,6 +536,7 @@ export const parse = (tokens: Token[]): AST => {
             }
 
             const node: CallExpression = {
+              generaltype: 'Expression',
               type: 'CallExpression',
               callee,
               arguments: args,
@@ -517,12 +559,7 @@ export const parse = (tokens: Token[]): AST => {
               throw new Error(`Line ${line + 1}: Node is null`)
             }
 
-            if (
-              object.type !== 'MemberExpression' &&
-              object.type !== 'CallExpression' &&
-              object.type !== 'ArrayExpression' &&
-              object.type !== 'Identifier'
-            ) {
+            if (object.generaltype !== 'Expression') {
               throw new Error(
                 `Line ${
                   line + 1
@@ -531,17 +568,20 @@ export const parse = (tokens: Token[]): AST => {
             }
 
             const property: Identifier = {
+              generaltype: 'Expression',
               type: 'Identifier',
               name: token.value.toString(),
             }
 
             const callee: MemberExpression = {
+              generaltype: 'Expression',
               type: 'MemberExpression',
               object,
               property,
             }
 
             const node: CallExpression = {
+              generaltype: 'Expression',
               type: 'CallExpression',
               callee,
               arguments: [],
@@ -562,12 +602,7 @@ export const parse = (tokens: Token[]): AST => {
               throw new Error(`Line ${line + 1}: Node is null`)
             }
 
-            if (
-              object.type !== 'MemberExpression' &&
-              object.type !== 'CallExpression' &&
-              object.type !== 'ArrayExpression' &&
-              object.type !== 'Identifier'
-            ) {
+            if (object.generaltype !== 'Expression') {
               throw new Error(
                 `Line ${
                   line + 1
@@ -576,11 +611,13 @@ export const parse = (tokens: Token[]): AST => {
             }
 
             const property: Identifier = {
+              generaltype: 'Expression',
               type: 'Identifier',
               name: 'length',
             }
 
             const node: MemberExpression = {
+              generaltype: 'Expression',
               type: 'MemberExpression',
               object,
               property,
@@ -592,15 +629,16 @@ export const parse = (tokens: Token[]): AST => {
             return node
           }
 
-          case 'dict': {
-            checkOpeningParen()
+          //case 'dict': {
+          //  checkOpeningParen()
 
-            while (peek().type !== TokenType.CLOSE_PAREN) {}
-          }
+          //  while (peek().type !== TokenType.CLOSE_PAREN) {}
+          //}
 
           default: {
             // if (definedIdentifiers.includes(token.value.toString())) {
             const id: Identifier = {
+              generaltype: 'Expression',
               type: 'Identifier',
               name: token.value.toString(),
             }
@@ -622,7 +660,7 @@ export const parse = (tokens: Token[]): AST => {
     const node: WalkResult = walk()
 
     if (node) {
-      ast.body.push(node as BinaryExpression | UnaryExpression)
+      ast.body.push(node as Statement)
     }
   }
 

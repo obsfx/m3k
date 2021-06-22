@@ -1,3 +1,8 @@
+/**
+ * Mostly implemented with the guidance of here
+ * https://github.com/estree/estree
+ */
+
 export type NodeType =
   | 'Program'
   | 'ExpressionStatement'
@@ -15,7 +20,7 @@ export type NodeType =
   | 'Identifier'
   | 'Literal'
 
-export type GeneralType = 'Expression' | 'Statement' | 'Declaration'
+export type GeneralType = 'Node' | 'Expression' | 'Statement' | 'Declaration'
 
 //export type InnerNode =
 //  | MemberExpression
@@ -65,9 +70,23 @@ export interface Expression extends Node {
   readonly generaltype: 'Expression'
 }
 
+export type AssignmentOperator =
+  | '='
+  | '+='
+  | '-='
+  | '*='
+  | '/='
+  | '%='
+  | '<<='
+  | '>>='
+  | '>>>='
+  | '|='
+  | '^='
+  | '&='
+
 export interface AssignmentExpression extends Expression {
   readonly type: 'AssignmentExpression'
-  operator: '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '<<=' | '>>=' | '>>>=' | '|=' | '^=' | '&='
+  operator: AssignmentOperator
   left: Expression
   right: Expression
 }
@@ -94,36 +113,40 @@ export interface ArrayExpression extends Expression {
   elements: (Expression | SpreadElement)[]
 }
 
+export type UnaryOperator = '-' | '+' | '!' | '~' | 'typeof' | 'void' | 'delete'
+
 export interface UnaryExpression extends Expression {
   readonly type: 'UnaryExpression'
-  operator: '-' | '+' | '!' | '~' | 'typeof' | 'void' | 'delete'
+  operator: UnaryOperator
   argument: Expression
 }
 
+export type BinaryOperator =
+  | '=='
+  | '!='
+  | '==='
+  | '!=='
+  | '<'
+  | '<='
+  | '>'
+  | '>='
+  | '<<'
+  | '>>'
+  | '>>>'
+  | '+'
+  | '-'
+  | '*'
+  | '/'
+  | '%'
+  | '|'
+  | '^'
+  | '&'
+  | 'in'
+  | 'instanceof'
+
 export interface BinaryExpression extends Expression {
   readonly type: 'BinaryExpression'
-  operator:
-    | '=='
-    | '!='
-    | '==='
-    | '!=='
-    | '<'
-    | '<='
-    | '>'
-    | '>='
-    | '<<'
-    | '>>'
-    | '>>>'
-    | '+'
-    | '-'
-    | '*'
-    | '/'
-    | '%'
-    | '|'
-    | '^'
-    | '&'
-    | 'in'
-    | 'instanceof'
+  operator: BinaryOperator
   left: Expression
   right: Expression
 }
