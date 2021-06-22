@@ -85,13 +85,13 @@ export const tokenize = (input: string): Token[] => {
 
       case ':':
         {
-          let key: string = ''
+          let key: string = char
 
           while (/^[A-Za-z0-9_!@-]*$/.test(peek())) {
             key += consume()
           }
 
-          tokens.push({ type: TokenType.DICT_KEY, value: key })
+          tokens.push({ type: TokenType.IDENTIFIER, value: key })
         }
         break
 

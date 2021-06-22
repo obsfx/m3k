@@ -17,6 +17,8 @@ import {
   CallExpression,
   ArrayExpression,
   Statement,
+  Property,
+  ObjectExpression,
 } from './types/ast.types'
 
 type WalkResult = Expression | Declaration | null
@@ -38,6 +40,30 @@ export const parse = (tokens: Token[]): AST => {
 
   const peek = (offet: number = 0): Token => {
     return tokens[current + offet]
+  }
+
+  const seekForToken = (type: TokenType): boolean => {
+    let idx: number = current
+    while (idx < tokens.length) {
+      if (type === tokens[idx].type) {
+        return true
+      } else if (tokens[idx].type !== TokenType.NEWLINE) {
+        return false
+      }
+      idx++
+    }
+
+    return false
+  }
+
+  const consumeUntil = (type: TokenType, include: boolean = true): void => {
+    while (current < tokens.length && peek().type !== type) {
+      consume()
+    }
+
+    if (include) {
+      consume()
+    }
   }
 
   const before = (): Token => {
@@ -142,7 +168,7 @@ export const parse = (tokens: Token[]): AST => {
         const operator: string = token.value.toString()
 
         const params: Expression[] = []
-        while (peek().type !== TokenType.CLOSE_PAREN) {
+        while (!seekForToken(TokenType.CLOSE_PAREN)) {
           const param: WalkResult = walk()
 
           if (!param) {
@@ -170,7 +196,7 @@ export const parse = (tokens: Token[]): AST => {
         )
 
         // consume the close paren
-        consume()
+        consumeUntil(TokenType.CLOSE_PAREN)
 
         return node
       }
@@ -231,7 +257,7 @@ export const parse = (tokens: Token[]): AST => {
             }
 
             // consume the close paren
-            consume()
+            consumeUntil(TokenType.CLOSE_PAREN)
 
             definedIdentifiers.push(name)
 
@@ -282,7 +308,7 @@ export const parse = (tokens: Token[]): AST => {
             }
 
             // consume the close paren
-            consume()
+            consumeUntil(TokenType.CLOSE_PAREN)
 
             return node
           }
@@ -311,7 +337,7 @@ export const parse = (tokens: Token[]): AST => {
 
             const args: (Expression | SpreadElement)[] = []
 
-            while (peek().type !== TokenType.CLOSE_PAREN) {
+            while (!seekForToken(TokenType.CLOSE_PAREN)) {
               const arg: WalkResult = walk()
 
               if (!arg) {
@@ -345,7 +371,7 @@ export const parse = (tokens: Token[]): AST => {
             }
 
             // consume the close paren
-            consume()
+            consumeUntil(TokenType.CLOSE_PAREN)
 
             return node
           }
@@ -355,7 +381,7 @@ export const parse = (tokens: Token[]): AST => {
 
             const elements: (Expression | SpreadElement)[] = []
 
-            while (peek().type !== TokenType.CLOSE_PAREN) {
+            while (!seekForToken(TokenType.CLOSE_PAREN)) {
               const element: WalkResult = walk()
 
               if (!element) {
@@ -384,7 +410,7 @@ export const parse = (tokens: Token[]): AST => {
             }
 
             // consume the close paren
-            consume()
+            consumeUntil(TokenType.CLOSE_PAREN)
 
             return node
           }
@@ -428,7 +454,7 @@ export const parse = (tokens: Token[]): AST => {
             }
 
             // consume the close paren
-            consume()
+            consumeUntil(TokenType.CLOSE_PAREN)
 
             return node
           }
@@ -438,7 +464,7 @@ export const parse = (tokens: Token[]): AST => {
 
             const elements: SpreadElement[] = []
 
-            while (peek().type !== TokenType.CLOSE_PAREN) {
+            while (!seekForToken(TokenType.CLOSE_PAREN)) {
               const arg: WalkResult = walk()
 
               if (!arg) {
@@ -473,7 +499,7 @@ export const parse = (tokens: Token[]): AST => {
             }
 
             // consume the close paren
-            consume()
+            consumeUntil(TokenType.CLOSE_PAREN)
 
             return node
           }
@@ -517,7 +543,7 @@ export const parse = (tokens: Token[]): AST => {
 
             const args: (Expression | SpreadElement)[] = []
 
-            while (peek().type !== TokenType.CLOSE_PAREN) {
+            while (!seekForToken(TokenType.CLOSE_PAREN)) {
               const arg: WalkResult = walk()
 
               if (!arg) {
@@ -533,6 +559,10 @@ export const parse = (tokens: Token[]): AST => {
               }
 
               args.push(arg)
+
+              if (!peek()) {
+                throw new Error(`Line ${line + 1}: Syntax error: Unclosed paranthesis`)
+              }
             }
 
             const node: CallExpression = {
@@ -543,7 +573,7 @@ export const parse = (tokens: Token[]): AST => {
             }
 
             // consume the close paren
-            consume()
+            consumeUntil(TokenType.CLOSE_PAREN)
 
             return node
           }
@@ -588,7 +618,7 @@ export const parse = (tokens: Token[]): AST => {
             }
 
             // consume the close paren
-            consume()
+            consumeUntil(TokenType.CLOSE_PAREN)
 
             return node
           }
@@ -624,16 +654,75 @@ export const parse = (tokens: Token[]): AST => {
             }
 
             // consume the close paren
-            consume()
+            consumeUntil(TokenType.CLOSE_PAREN)
 
             return node
           }
 
-          //case 'dict': {
-          //  checkOpeningParen()
+          case 'dict': {
+            checkOpeningParen()
 
-          //  while (peek().type !== TokenType.CLOSE_PAREN) {}
-          //}
+            const properties: Property[] = []
+            while (!seekForToken(TokenType.CLOSE_PAREN)) {
+              const key: WalkResult = walk()
+
+              if (!key) {
+                throw new Error(`Line ${line + 1}: Node is null`)
+              }
+
+              if (key.generaltype !== 'Expression') {
+                throw new Error(
+                  `Line ${
+                    line + 1
+                  }: Definition in expression context, where definitions are not allowed`
+                )
+              }
+
+              if (key.type !== 'Identifier' && (key as Identifier).name[0] !== ':') {
+                throw new Error(`Line ${line + 1}: Incorrect dict key`)
+              }
+
+              ;(key as Identifier).name = (key as Identifier).name.slice(1)
+
+              const value: WalkResult = walk()
+
+              if (!value) {
+                throw new Error(`Line ${line + 1}: Node is null`)
+              }
+
+              if (value.generaltype !== 'Expression') {
+                throw new Error(
+                  `Line ${
+                    line + 1
+                  }: Definition in expression context, where definitions are not allowed`
+                )
+              }
+
+              const property: Property = {
+                generaltype: 'Node',
+                type: 'Property',
+                key,
+                value,
+              }
+
+              properties.push(property)
+
+              if (!peek()) {
+                throw new Error(`Line ${line + 1}: Syntax error: Unclosed paranthesis`)
+              }
+            }
+
+            const node: ObjectExpression = {
+              generaltype: 'Expression',
+              type: 'ObjectExpression',
+              properties,
+            }
+
+            // consume the close paren
+            consumeUntil(TokenType.CLOSE_PAREN)
+
+            return node
+          }
 
           default: {
             // if (definedIdentifiers.includes(token.value.toString())) {

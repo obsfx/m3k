@@ -13,6 +13,8 @@ import {
   CallExpression,
   ArrayExpression,
   SpreadElement,
+  ObjectExpression,
+  Property,
 } from './types/ast.types'
 
 export const generate = (node: Node): string => {
@@ -60,6 +62,12 @@ export const generate = (node: Node): string => {
         )}]`
       }
     }
+
+    case 'ObjectExpression':
+      return `{${(node as ObjectExpression).properties.map(generate).join(', ')}}`
+
+    case 'Property':
+      return `${generate((node as Property).key)}: ${generate((node as Property).value)}`
 
     case 'BinaryExpression':
       return `${generate((node as BinaryExpression).left)} ${

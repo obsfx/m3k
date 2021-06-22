@@ -113,6 +113,26 @@ const debugVisitor: Visitor = {
     },
   },
 
+  ObjectExpression: {
+    enter: (node: Node) => {
+      console.log(`${' '.repeat(depth * 2)}${node.type}`)
+      depth++
+    },
+    exit: () => {
+      depth--
+    },
+  },
+
+  Property: {
+    enter: (node: Node) => {
+      console.log(`${' '.repeat(depth * 2)}${node.type}`)
+      depth++
+    },
+    exit: () => {
+      depth--
+    },
+  },
+
   UnaryExpression: {
     enter: (node: Node) => {
       console.log(`${' '.repeat(depth * 2)}${node.type} ${(node as UnaryExpression).operator}`)

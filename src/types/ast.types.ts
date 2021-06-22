@@ -49,7 +49,7 @@ export interface VariableDeclarator extends Node {
 
 export interface Property extends Node {
   readonly type: 'Property'
-  key: Identifier | Literal
+  key: Expression
   value: Expression
 }
 

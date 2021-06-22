@@ -12,6 +12,8 @@ import {
   MemberExpression,
   ArrayExpression,
   SpreadElement,
+  ObjectExpression,
+  Property,
 } from './types/ast.types'
 import { VisitorMethods, Visitor } from './types/visitor.types'
 
@@ -58,6 +60,17 @@ export const traverse = (ast: AST, visitor: Visitor): void => {
       case 'MemberExpression':
         traverseNode((node as MemberExpression).object, node)
         traverseNode((node as MemberExpression).property, node)
+        break
+
+      case 'ObjectExpression':
+        ;(node as ObjectExpression).properties.forEach((element: Node) =>
+          traverseNode(element, node)
+        )
+        break
+
+      case 'Property':
+        traverseNode((node as Property).key, node)
+        traverseNode((node as Property).value, node)
         break
 
       case 'AssignmentExpression':

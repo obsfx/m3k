@@ -18,7 +18,6 @@ export enum TokenType {
   NIL = 'NIL',
   FUN = 'FUN',
   NEWLINE = 'NEWLINE',
-  DICT_KEY = 'DICT_KEY',
 }
 
 export interface Token {
