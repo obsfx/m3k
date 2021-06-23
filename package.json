@@ -1,7 +1,7 @@
 {
   "name": "m3k",
   "version": "0.0.1",
-  "description": "m3k is a lisp dialect that compiled to JavaScript",
+  "description": "m3k is a lisp dialect that compiles to JavaScript",
   "main": "index.js",
   "scripts": {
     "run": "DEV=true ts-node ./src/index.ts",
