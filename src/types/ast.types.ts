@@ -7,6 +7,7 @@ export type NodeType =
   | 'Program'
   | 'ExpressionStatement'
   | 'BlockStatement'
+  | 'IfStatement'
   | 'UnaryExpression'
   | 'BinaryExpression'
   | 'AssignmentExpression'
@@ -183,7 +184,14 @@ export interface ExpressionStatement extends Statement {
 
 export interface BlockStatement extends Statement {
   readonly type: 'BlockStatement'
-  body: (Expression | Declaration)[]
+  body: (Expression | Declaration | Statement)[]
+}
+
+export interface IfStatement extends Statement {
+  readonly type: 'IfStatement'
+  test: Expression
+  consequent: BlockStatement
+  alternate: BlockStatement | null
 }
 
 /**

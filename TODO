@@ -4,20 +4,20 @@
 [x] arr unshift
 [x] arr length
 [x] arr reverse
-[ ] arr remove
-[ ] arr find?
-[ ] arr filter?
+[x] arr remove
+[x] arr find?
+[x] arr filter?
 [x] object
 [x] getval from object
 [ ] loops
-[ ] functions
+[x] functions
 [ ] built-in methods
 [ ] canvas utils
 [ ] draw img utils
 [ ] 3D transformation utils ??
 [ ] keyboard
-[ ] floor
-[ ] random
-[ ] if conditions
+[x] floor
+[xj] random
+[x] if conditions
 [ ] comment lines
 [ ] error for reserved keywords

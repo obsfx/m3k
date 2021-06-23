@@ -16,6 +16,7 @@ import {
   Property,
   ArrowFunctionExpression,
   BlockStatement,
+  IfStatement,
 } from './types/ast.types'
 import { VisitorMethods, Visitor } from './types/visitor.types'
 
@@ -42,6 +43,15 @@ export const traverse = (ast: AST, visitor: Visitor): void => {
         traverseArray((node as BlockStatement).body, node)
         break
 
+      case 'IfStatement':
+        {
+          traverseNode((node as IfStatement).consequent, node)
+          if ((node as IfStatement).alternate !== null) {
+            traverseNode((node as IfStatement).alternate as BlockStatement, node)
+          }
+        }
+        break
+
       case 'VariableDeclaration':
         traverseArray((node as VariableDeclaration).declarations, node)
         break
@@ -56,11 +66,11 @@ export const traverse = (ast: AST, visitor: Visitor): void => {
 
       case 'CallExpression':
         traverseNode((node as CallExpression).callee, node)
-        ;(node as CallExpression).arguments.forEach((arg: Node) => traverseNode(arg, node))
+        traverseArray((node as CallExpression).arguments, node)
         break
 
       case 'ArrayExpression':
-        ;(node as ArrayExpression).elements.forEach((element: Node) => traverseNode(element, node))
+        traverseArray((node as ArrayExpression).elements, node)
         break
 
       case 'MemberExpression':
@@ -69,9 +79,7 @@ export const traverse = (ast: AST, visitor: Visitor): void => {
         break
 
       case 'ObjectExpression':
-        ;(node as ObjectExpression).properties.forEach((element: Node) =>
-          traverseNode(element, node)
-        )
+        traverseArray((node as ObjectExpression).properties, node)
         break
 
       case 'Property':
@@ -85,9 +93,7 @@ export const traverse = (ast: AST, visitor: Visitor): void => {
         break
 
       case 'ArrowFunctionExpression':
-        ;(node as ArrowFunctionExpression).params.forEach((param: Node) =>
-          traverseNode(param, node)
-        )
+        traverseArray((node as ArrowFunctionExpression).params, node)
         traverseNode((node as ArrowFunctionExpression).body, node)
         break
 

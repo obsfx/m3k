@@ -21,6 +21,7 @@ import {
   ObjectExpression,
   ArrowFunctionExpression,
   BlockStatement,
+  IfStatement,
 } from './types/ast.types'
 
 type WalkResult = Expression | Declaration | null
@@ -564,6 +565,11 @@ export const parse = (tokens: Token[]): AST => {
           }
 
           case 'unshift':
+          case 'map':
+          case 'for-each':
+          case 'filter':
+          case 'find':
+          case 'reduce':
           case 'push':
           case 'includes':
           case 'fill':
@@ -910,6 +916,85 @@ export const parse = (tokens: Token[]): AST => {
               type: 'ArrowFunctionExpression',
               params: [],
               body,
+            }
+
+            const node: CallExpression = {
+              generaltype: 'Expression',
+              type: 'CallExpression',
+              callee,
+              arguments: [],
+            }
+
+            // consume the close paren
+            consumeUntil(TokenType.CLOSE_PAREN)
+
+            return node
+          }
+
+          case 'if': {
+            checkOpeningParen()
+
+            const test: WalkResult = walk()
+
+            if (!test) {
+              throw new Error(`Line ${line + 1}: Node is null`)
+            }
+
+            if (test.generaltype !== 'Expression') {
+              throw new Error(
+                `Line ${
+                  line + 1
+                }: Definition in expression context, where definitions are not allowed`
+              )
+            }
+
+            const consequentBody: WalkResult = walk()
+
+            if (!consequentBody) {
+              throw new Error(`Line ${line + 1}: Node is null`)
+            }
+
+            const consequent: BlockStatement = {
+              generaltype: 'Statement',
+              type: 'BlockStatement',
+              body: [consequentBody],
+            }
+
+            let alternate: BlockStatement | null = null
+
+            if (!seekForToken(TokenType.CLOSE_PAREN)) {
+              const alternateBody: WalkResult = walk()
+
+              if (!alternateBody) {
+                throw new Error(`Line ${line + 1}: Node is null`)
+              }
+
+              alternate = {
+                generaltype: 'Statement',
+                type: 'BlockStatement',
+                body: [alternateBody],
+              }
+            }
+
+            const arrowBlockBody: IfStatement = {
+              generaltype: 'Statement',
+              type: 'IfStatement',
+              test,
+              consequent,
+              alternate,
+            }
+
+            const arrowBody: BlockStatement = {
+              generaltype: 'Statement',
+              type: 'BlockStatement',
+              body: [arrowBlockBody],
+            }
+
+            const callee: ArrowFunctionExpression = {
+              generaltype: 'Expression',
+              type: 'ArrowFunctionExpression',
+              body: arrowBody,
+              params: [],
             }
 
             const node: CallExpression = {

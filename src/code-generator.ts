@@ -17,6 +17,10 @@ import {
   Property,
   ArrowFunctionExpression,
   BlockStatement,
+  Declaration,
+  Expression,
+  Statement,
+  IfStatement,
 } from './types/ast.types'
 
 export const generate = (node: Node): string => {
@@ -24,8 +28,30 @@ export const generate = (node: Node): string => {
     case 'Program':
       return (node as AST).body.map(generate).join('\n')
 
-    case 'BlockStatement':
-      return `{${(node as BlockStatement).body.map(generate).join('\n')}}`
+    case 'BlockStatement': {
+      let lastNode: Expression | Declaration | Statement | undefined = undefined
+
+      if (
+        (node as BlockStatement).body[(node as BlockStatement).body.length - 1] &&
+        (node as BlockStatement).body[(node as BlockStatement).body.length - 1].generaltype !==
+          'Statement'
+      ) {
+        lastNode = (node as BlockStatement).body.pop()
+      }
+
+      return `{${(node as BlockStatement).body.map(generate).join('\n')}${
+        lastNode ? `\nreturn ${generate(lastNode)}` : ''
+      }}`
+    }
+
+    case 'IfStatement':
+      return `if (${generate((node as IfStatement).test)}) ${generate(
+        (node as IfStatement).consequent
+      )} ${
+        (node as IfStatement).alternate
+          ? `${generate((node as IfStatement).alternate as BlockStatement)}`
+          : ''
+      }`
 
     case 'VariableDeclaration':
       return `${(node as VariableDeclaration).kind} ${(
@@ -38,7 +64,10 @@ export const generate = (node: Node): string => {
       )}`
 
     case 'Identifier':
-      return `${(node as Identifier).name.split('-').join('_')}`
+      return `${(node as Identifier).name
+        .split('-')
+        .map((e: string, i: number) => (i === 0 ? e : `${e[0].toUpperCase()}${e.slice(1)}`))
+        .join('')}`
 
     case 'ExpressionStatement':
       return `${generate((node as ExpressionStatement).expression)};`

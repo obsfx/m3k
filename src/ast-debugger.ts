@@ -163,6 +163,16 @@ const debugVisitor: Visitor = {
     },
   },
 
+  IfStatement: {
+    enter: (node: Node) => {
+      console.log(`${' '.repeat(depth * 2)}${node.type}`)
+      depth++
+    },
+    exit: () => {
+      depth--
+    },
+  },
+
   SpreadElement: {
     enter: (node: Node) => {
       console.log(`${' '.repeat(depth * 2)}${node.type}`)
