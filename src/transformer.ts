@@ -37,7 +37,7 @@ export const transform = (ast: AST): AST => {
   const transformerVisitor: Visitor = {
     BinaryExpression: {
       enter: (node: Node, parent: Node): void => {
-        if (parent.type === 'Program') {
+        if (parent.type === 'Program' || parent.type === 'BlockStatement') {
           wrapWithExpressionStatement(node, parent)
         }
       },
@@ -45,7 +45,7 @@ export const transform = (ast: AST): AST => {
 
     UnaryExpression: {
       enter: (node: Node, parent: Node): void => {
-        if (parent.type === 'Program') {
+        if (parent.type === 'Program' || parent.type === 'BlockStatement') {
           wrapWithExpressionStatement(node, parent)
         }
       },
@@ -53,7 +53,7 @@ export const transform = (ast: AST): AST => {
 
     AssignmentExpression: {
       enter: (node: Node, parent: Node): void => {
-        if (parent.type === 'Program') {
+        if (parent.type === 'Program' || parent.type === 'BlockStatement') {
           wrapWithExpressionStatement(node, parent)
         }
       },
@@ -61,7 +61,7 @@ export const transform = (ast: AST): AST => {
 
     CallExpression: {
       enter: (node: Node, parent: Node): void => {
-        if (parent.type === 'Program') {
+        if (parent.type === 'Program' || parent.type === 'BlockStatement') {
           wrapWithExpressionStatement(node, parent)
         }
       },
@@ -69,7 +69,7 @@ export const transform = (ast: AST): AST => {
 
     ArrayExpression: {
       enter: (node: Node, parent: Node): void => {
-        if (parent.type === 'Program') {
+        if (parent.type === 'Program' || parent.type === 'BlockStatement') {
           wrapWithExpressionStatement(node, parent)
         }
       },

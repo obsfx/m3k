@@ -64,6 +64,20 @@ export const tokenize = (input: string): Token[] => {
         tokens.push({ type: TokenType.EQUAL, value: '=' })
         break
 
+      case '>':
+        if (peek() !== ' ') {
+          throw new Error(`Unexpected first symbol character: ${peek()}`)
+        }
+        tokens.push({ type: TokenType.GREATER, value: '>' })
+        break
+
+      case '<':
+        if (peek() !== ' ') {
+          throw new Error(`Unexpected first symbol character: ${peek()}`)
+        }
+        tokens.push({ type: TokenType.LESS, value: '<' })
+        break
+
       case '"':
         {
           let str: string = ''

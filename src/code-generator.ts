@@ -34,7 +34,9 @@ export const generate = (node: Node): string => {
       if (
         (node as BlockStatement).body[(node as BlockStatement).body.length - 1] &&
         (node as BlockStatement).body[(node as BlockStatement).body.length - 1].generaltype !==
-          'Statement'
+          'Statement' &&
+        (node as BlockStatement).body[(node as BlockStatement).body.length - 1].type !==
+          'AssignmentExpression'
       ) {
         lastNode = (node as BlockStatement).body.pop()
       }
@@ -128,7 +130,7 @@ export const generate = (node: Node): string => {
       } ${generate((node as BinaryExpression).right)}`
 
     case 'UnaryExpression':
-      return `${(node as UnaryExpression).operator} ${generate((node as UnaryExpression).argument)}`
+      return `${(node as UnaryExpression).operator}${generate((node as UnaryExpression).argument)}`
 
     case 'SpreadElement':
       return `...${generate((node as SpreadElement).argument)}`

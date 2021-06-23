@@ -12,7 +12,7 @@
     "declaration": true,
     "moduleResolution": "node",
     "rootDirs": ["./src"],
-    "types": [],
+    "types": ["node"],
     "forceConsistentCasingInFileNames": true
   },
   "include": ["src"]

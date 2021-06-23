@@ -219,6 +219,8 @@ export const parse = (tokens: Token[]): AST => {
         return node
       }
 
+      case TokenType.GREATER:
+      case TokenType.LESS:
       case TokenType.PLUS:
       case TokenType.MINUS:
       case TokenType.STAR:
@@ -572,7 +574,6 @@ export const parse = (tokens: Token[]): AST => {
           case 'reduce':
           case 'push':
           case 'includes':
-          case 'fill':
           case 'concat':
           case 'join':
           case 'slice':
