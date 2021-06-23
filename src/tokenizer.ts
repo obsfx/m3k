@@ -25,11 +25,11 @@ export const tokenize = (input: string): Token[] => {
 
     switch (char) {
       case '(':
-        tokens.push({ type: TokenType.OPEN_PAREN, value: '' })
+        tokens.push({ type: TokenType.OPEN_PAREN, value: '(' })
         break
 
       case ')':
-        tokens.push({ type: TokenType.CLOSE_PAREN, value: '' })
+        tokens.push({ type: TokenType.CLOSE_PAREN, value: ')' })
         break
 
       case '-':
@@ -61,7 +61,7 @@ export const tokenize = (input: string): Token[] => {
         if (peek() !== ' ') {
           throw new Error(`Unexpected first symbol character: ${peek()}`)
         }
-        tokens.push({ type: TokenType.EQUAL, value: '' })
+        tokens.push({ type: TokenType.EQUAL, value: '=' })
         break
 
       case '"':
@@ -96,7 +96,7 @@ export const tokenize = (input: string): Token[] => {
         break
 
       case '\n':
-        tokens.push({ type: TokenType.NEWLINE, value: '' })
+        tokens.push({ type: TokenType.NEWLINE, value: '\n' })
         break
 
       case ' ':

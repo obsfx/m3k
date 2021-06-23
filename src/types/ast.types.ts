@@ -6,6 +6,7 @@
 export type NodeType =
   | 'Program'
   | 'ExpressionStatement'
+  | 'BlockStatement'
   | 'UnaryExpression'
   | 'BinaryExpression'
   | 'AssignmentExpression'
@@ -13,6 +14,7 @@ export type NodeType =
   | 'CallExpression'
   | 'ArrayExpression'
   | 'ObjectExpression'
+  | 'ArrowFunctionExpression'
   | 'VariableDeclarator'
   | 'VariableDeclaration'
   | 'SpreadElement'
@@ -99,7 +101,7 @@ export interface MemberExpression extends Expression {
 
 export interface CallExpression extends Expression {
   readonly type: 'CallExpression'
-  callee: MemberExpression
+  callee: Expression
   arguments: (Expression | SpreadElement)[]
 }
 
@@ -151,6 +153,12 @@ export interface BinaryExpression extends Expression {
   right: Expression
 }
 
+export interface ArrowFunctionExpression extends Expression {
+  readonly type: 'ArrowFunctionExpression'
+  params: Identifier[]
+  body: BlockStatement | Expression | Declaration
+}
+
 export interface Literal extends Expression {
   readonly type: 'Literal'
   value: string | boolean | null | number
@@ -171,6 +179,11 @@ export interface Statement extends Node {
 export interface ExpressionStatement extends Statement {
   readonly type: 'ExpressionStatement'
   expression: Expression
+}
+
+export interface BlockStatement extends Statement {
+  readonly type: 'BlockStatement'
+  body: (Expression | Declaration)[]
 }
 
 /**

@@ -15,12 +15,17 @@ import {
   SpreadElement,
   ObjectExpression,
   Property,
+  ArrowFunctionExpression,
+  BlockStatement,
 } from './types/ast.types'
 
 export const generate = (node: Node): string => {
   switch (node.type) {
     case 'Program':
       return (node as AST).body.map(generate).join('\n')
+
+    case 'BlockStatement':
+      return `{${(node as BlockStatement).body.map(generate).join('\n')}}`
 
     case 'VariableDeclaration':
       return `${(node as VariableDeclaration).kind} ${(
@@ -43,13 +48,32 @@ export const generate = (node: Node): string => {
         (node as AssignmentExpression).operator
       } ${generate((node as AssignmentExpression).right)}`
 
-    case 'CallExpression':
-      return `${generate((node as CallExpression).callee)}(${(node as CallExpression).arguments
-        .map(generate)
-        .join(', ')})`
+    case 'CallExpression': {
+      if ((node as CallExpression).callee.type === 'ArrowFunctionExpression') {
+        return `(${generate((node as CallExpression).callee)})(${(node as CallExpression).arguments
+          .map(generate)
+          .join(', ')})`
+      } else {
+        return `${generate((node as CallExpression).callee)}(${(node as CallExpression).arguments
+          .map(generate)
+          .join(', ')})`
+      }
+    }
 
     case 'ArrayExpression':
       return `[${(node as ArrayExpression).elements.map(generate).join(', ')}]`
+
+    case 'ArrowFunctionExpression': {
+      if ((node as ArrowFunctionExpression).body.type !== 'BlockStatement') {
+        return `(${(node as ArrowFunctionExpression).params
+          .map(generate)
+          .join(', ')}) => (${generate((node as ArrowFunctionExpression).body)})`
+      } else {
+        return `(${(node as ArrowFunctionExpression).params
+          .map(generate)
+          .join(', ')}) => ${generate((node as ArrowFunctionExpression).body)}`
+      }
+    }
 
     case 'MemberExpression': {
       if ((node as MemberExpression).property.type === 'Identifier') {

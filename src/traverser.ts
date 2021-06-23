@@ -14,6 +14,8 @@ import {
   SpreadElement,
   ObjectExpression,
   Property,
+  ArrowFunctionExpression,
+  BlockStatement,
 } from './types/ast.types'
 import { VisitorMethods, Visitor } from './types/visitor.types'
 
@@ -34,6 +36,10 @@ export const traverse = (ast: AST, visitor: Visitor): void => {
     switch (node.type) {
       case 'Program':
         traverseArray((node as AST).body, node)
+        break
+
+      case 'BlockStatement':
+        traverseArray((node as BlockStatement).body, node)
         break
 
       case 'VariableDeclaration':
@@ -76,6 +82,13 @@ export const traverse = (ast: AST, visitor: Visitor): void => {
       case 'AssignmentExpression':
         traverseNode((node as AssignmentExpression).left, node)
         traverseNode((node as AssignmentExpression).right, node)
+        break
+
+      case 'ArrowFunctionExpression':
+        ;(node as ArrowFunctionExpression).params.forEach((param: Node) =>
+          traverseNode(param, node)
+        )
+        traverseNode((node as ArrowFunctionExpression).body, node)
         break
 
       case 'BinaryExpression':

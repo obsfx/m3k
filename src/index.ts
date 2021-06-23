@@ -68,6 +68,20 @@ test += `
 
 (set! (getval new-field (getval entry-three obj)) "test")
 (print (getval new-field (getval entry-three obj)))
+
+
+(define fn (defun (text) (print text)))
+(set! fn (defun (text) (print text)))
+
+(fn "deneme deneme")
+
+(define add
+ (defun (a b c d)
+  (progn
+   (define y (* a b c d))
+   (print "sonuç:" y))))
+
+(add 2 2 2 2)
 `
 
 // console.log(test)

@@ -19,6 +19,8 @@ import {
   Statement,
   Property,
   ObjectExpression,
+  ArrowFunctionExpression,
+  BlockStatement,
 } from './types/ast.types'
 
 type WalkResult = Expression | Declaration | null
@@ -66,8 +68,8 @@ export const parse = (tokens: Token[]): AST => {
     }
   }
 
-  const before = (): Token => {
-    return tokens[current - 2]
+  const before = (offet: number = 0): Token => {
+    return tokens[current - 2 + offet]
   }
 
   const constructBinaryExpressions = (
@@ -140,6 +142,61 @@ export const parse = (tokens: Token[]): AST => {
 
     switch (token.type) {
       case TokenType.OPEN_PAREN: {
+        if (seekForToken(TokenType.OPEN_PAREN)) {
+          const callee: WalkResult = walk()
+
+          if (!callee) {
+            throw new Error(`Line ${line + 1}: Missing binary expression operands`)
+          }
+
+          if (callee.generaltype !== 'Expression') {
+            throw new Error(
+              `Line ${
+                line + 1
+              }: Definition in expression context, where definitions are not allowed`
+            )
+          }
+
+          if (callee.type !== 'MemberExpression' && callee.type !== 'Identifier') {
+            throw Error(`Line ${line + 1}: Incorrect expression`)
+          }
+
+          const args: (Expression | SpreadElement)[] = []
+
+          while (!seekForToken(TokenType.CLOSE_PAREN)) {
+            const arg: WalkResult = walk()
+
+            if (!arg) {
+              throw new Error(`Line ${line + 1}: Node is null`)
+            }
+
+            if (arg.generaltype === 'Declaration') {
+              throw new Error(
+                `Line ${
+                  line + 1
+                }: Definition in expression context, where definitions are not allowed`
+              )
+            }
+
+            args.push(arg)
+
+            if (!peek()) {
+              throw new Error(`Line ${line + 1}: Syntax error: Unclosed paranthesis`)
+            }
+          }
+
+          const node: CallExpression = {
+            generaltype: 'Expression',
+            type: 'CallExpression',
+            callee,
+            arguments: args,
+          }
+
+          // consume the close paren
+          consumeUntil(TokenType.CLOSE_PAREN)
+
+          return node
+        }
         const node: WalkResult = walk()
         return node
       }
@@ -761,9 +818,9 @@ export const parse = (tokens: Token[]): AST => {
               )
             }
 
-            if (object.type !== 'Identifier' && object.type !== 'MemberExpression') {
-              throw new Error(`Line ${line + 1}: Incorrect dict key`)
-            }
+            //if (object.type !== 'Identifier' && object.type !== 'MemberExpression') {
+            //  throw new Error(`Line ${line + 1}: Incorrect dict key`)
+            //}
 
             const node: MemberExpression = {
               generaltype: 'Expression',
@@ -778,7 +835,146 @@ export const parse = (tokens: Token[]): AST => {
             return node
           }
 
+          case 'defun': {
+            checkOpeningParen()
+
+            consumeUntil(TokenType.OPEN_PAREN)
+
+            const params: Identifier[] = []
+
+            while (!seekForToken(TokenType.CLOSE_PAREN)) {
+              const param: WalkResult = walk()
+
+              if (!param) {
+                throw new Error(`Line ${line + 1}: Node is null`)
+              }
+
+              if (param.type !== 'Identifier') {
+                throw new Error(`Line ${line + 1}: Incorrect function parameter`)
+              }
+
+              params.push(param as Identifier)
+            }
+
+            // consume the close paren
+            consumeUntil(TokenType.CLOSE_PAREN)
+
+            consumeUntil(TokenType.OPEN_PAREN)
+
+            const body: WalkResult = walk()
+
+            if (!body) {
+              throw new Error(`Line ${line + 1}: Node is null`)
+            }
+
+            const node: ArrowFunctionExpression = {
+              generaltype: 'Expression',
+              type: 'ArrowFunctionExpression',
+              params,
+              body,
+            }
+
+            // consume the close paren
+            consumeUntil(TokenType.CLOSE_PAREN)
+
+            return node
+          }
+
+          case 'progn': {
+            checkOpeningParen()
+
+            const blockBody: (Expression | Declaration)[] = []
+
+            while (!seekForToken(TokenType.CLOSE_PAREN)) {
+              const node: WalkResult = walk()
+
+              if (!node) {
+                throw new Error(`Line ${line + 1}: Node is null`)
+              }
+
+              blockBody.push(node)
+            }
+
+            const body: BlockStatement = {
+              generaltype: 'Statement',
+              type: 'BlockStatement',
+              body: blockBody,
+            }
+
+            if (!body) {
+              throw new Error(`Line ${line + 1}: Node is null`)
+            }
+
+            const callee: ArrowFunctionExpression = {
+              generaltype: 'Expression',
+              type: 'ArrowFunctionExpression',
+              params: [],
+              body,
+            }
+
+            const node: CallExpression = {
+              generaltype: 'Expression',
+              type: 'CallExpression',
+              callee,
+              arguments: [],
+            }
+
+            // consume the close paren
+            consumeUntil(TokenType.CLOSE_PAREN)
+
+            return node
+          }
+
           default: {
+            if (
+              before() &&
+              before().type === TokenType.OPEN_PAREN &&
+              before(-1) &&
+              before(-1).value !== 'defun'
+            ) {
+              const callee: Identifier = {
+                generaltype: 'Expression',
+                type: 'Identifier',
+                name: token.value.toString(),
+              }
+
+              const args: (Expression | SpreadElement)[] = []
+
+              while (!seekForToken(TokenType.CLOSE_PAREN)) {
+                const arg: WalkResult = walk()
+
+                if (!arg) {
+                  throw new Error(`Line ${line + 1}: Node is null`)
+                }
+
+                if (arg.generaltype === 'Declaration') {
+                  throw new Error(
+                    `Line ${
+                      line + 1
+                    }: Definition in expression context, where definitions are not allowed`
+                  )
+                }
+
+                args.push(arg)
+
+                if (!peek()) {
+                  throw new Error(`Line ${line + 1}: Syntax error: Unclosed paranthesis`)
+                }
+              }
+
+              const node: CallExpression = {
+                generaltype: 'Expression',
+                type: 'CallExpression',
+                callee,
+                arguments: args,
+              }
+
+              // consume the close paren
+              consumeUntil(TokenType.CLOSE_PAREN)
+
+              return node
+            }
+
             // if (definedIdentifiers.includes(token.value.toString())) {
             const id: Identifier = {
               generaltype: 'Expression',
@@ -795,7 +991,7 @@ export const parse = (tokens: Token[]): AST => {
       }
 
       default:
-        throw new Error(`Line ${line + 1}: Undefined token: ${token.type}`)
+        throw new Error(`Line ${line + 1}: Undefined token: ${token.value}`)
     }
   }
 
