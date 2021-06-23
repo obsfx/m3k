@@ -6,7 +6,7 @@ import { parse } from './parser'
 import { transform } from './transformer'
 import { generate } from './code-generator'
 
-import { debugAST } from './ast-debugger'
+//import { debugAST } from './ast-debugger'
 
 let test = ''
 
@@ -65,6 +65,9 @@ test += `
                 )
   )
 )
+
+(set! (getval new-field (getval entry-three obj)) "test")
+(print (getval new-field (getval entry-three obj)))
 `
 
 // console.log(test)
@@ -80,13 +83,13 @@ const run = () => {
   console.log(`input: `, test)
   console.log('-------------------')
   const tokens: Token[] = tokenize(test)
-  console.log(tokens)
+  //console.log(tokens)
   //console.log('-------------------')
   const ast: AST = parse(tokens)
   //console.log(ast)
   //console.log('-------------------')
   const transformedAST: AST = transform(ast)
-  debugAST(transformedAST)
+  //debugAST(transformedAST)
   const code: string = generate(transformedAST)
   console.log(code)
   console.log('-------------------')

@@ -155,9 +155,11 @@ export const parse = (tokens: Token[]): AST => {
         return node
       }
 
-      case TokenType.NEWLINE:
-        line++
-        return walk()
+      case TokenType.NEWLINE: {
+        line += 1
+        const node: WalkResult = walk()
+        return node
+      }
 
       case TokenType.PLUS:
       case TokenType.MINUS:
@@ -716,6 +718,58 @@ export const parse = (tokens: Token[]): AST => {
               generaltype: 'Expression',
               type: 'ObjectExpression',
               properties,
+            }
+
+            // consume the close paren
+            consumeUntil(TokenType.CLOSE_PAREN)
+
+            return node
+          }
+
+          case 'getval': {
+            checkOpeningParen()
+
+            const property: WalkResult = walk()
+
+            if (!property) {
+              throw new Error(`Line ${line + 1}: Node is null`)
+            }
+
+            if (property.generaltype !== 'Expression') {
+              throw new Error(
+                `Line ${
+                  line + 1
+                }: Definition in expression context, where definitions are not allowed`
+              )
+            }
+
+            if (property.type !== 'Identifier') {
+              throw new Error(`Line ${line + 1}: Incorrect dict key`)
+            }
+
+            const object: WalkResult = walk()
+
+            if (!object) {
+              throw new Error(`Line ${line + 1}: Node is null`)
+            }
+
+            if (object.generaltype !== 'Expression') {
+              throw new Error(
+                `Line ${
+                  line + 1
+                }: Definition in expression context, where definitions are not allowed`
+              )
+            }
+
+            if (object.type !== 'Identifier' && object.type !== 'MemberExpression') {
+              throw new Error(`Line ${line + 1}: Incorrect dict key`)
+            }
+
+            const node: MemberExpression = {
+              generaltype: 'Expression',
+              type: 'MemberExpression',
+              object,
+              property,
             }
 
             // consume the close paren
