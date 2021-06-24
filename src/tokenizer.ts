@@ -57,25 +57,58 @@ export const tokenize = (input: string): Token[] => {
         tokens.push({ type: TokenType.STAR, value: '*' })
         break
 
-      case '=':
+      case '%':
         if (peek() !== ' ') {
           throw new Error(`Unexpected first symbol character: ${peek()}`)
         }
-        tokens.push({ type: TokenType.EQUAL, value: '=' })
+        tokens.push({ type: TokenType.MODULO, value: '%' })
+        break
+
+      case '!':
+        if (peek() === '=') {
+          consume()
+          tokens.push({ type: TokenType.BANG_EQUAL, value: '!=' })
+          break
+        }
+
+        if (peek() !== ' ') {
+          throw new Error(`Unexpected first symbol character: ${peek()}`)
+        }
+        tokens.push({ type: TokenType.BANG, value: '!' })
         break
 
       case '>':
+        if (peek() === '=') {
+          consume()
+          tokens.push({ type: TokenType.GREATER_EQUAL, value: '>=' })
+          break
+        }
+
         if (peek() !== ' ') {
           throw new Error(`Unexpected first symbol character: ${peek()}`)
         }
+
         tokens.push({ type: TokenType.GREATER, value: '>' })
         break
 
       case '<':
+        if (peek() === '=') {
+          consume()
+          tokens.push({ type: TokenType.LESS_EQUAL, value: '<=' })
+          break
+        }
+
         if (peek() !== ' ') {
           throw new Error(`Unexpected first symbol character: ${peek()}`)
         }
         tokens.push({ type: TokenType.LESS, value: '<' })
+        break
+
+      case '=':
+        if (peek() !== ' ') {
+          throw new Error(`Unexpected first symbol character: ${peek()}`)
+        }
+        tokens.push({ type: TokenType.EQUAL, value: '===' })
         break
 
       case '"':

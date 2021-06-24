@@ -97,7 +97,7 @@ export const parse = (tokens: Token[]): AST => {
     }
 
     if (!left) {
-      if (operator === '*' || operator === '/') {
+      if (operator !== '!' && operator !== '+' && operator !== '-') {
         throw new Error(`Line ${line + 1}: Unexpected token: ${operator}`)
       }
 
@@ -109,6 +109,8 @@ export const parse = (tokens: Token[]): AST => {
       }
 
       return node
+    } else if (operator === '!') {
+      throw new Error(`Line ${line + 1}: Unexpected token: ${operator}`)
     }
 
     if (left.generaltype !== 'Expression') {
@@ -219,8 +221,14 @@ export const parse = (tokens: Token[]): AST => {
         return node
       }
 
+      case TokenType.EQUAL:
       case TokenType.GREATER:
+      case TokenType.GREATER_EQUAL:
       case TokenType.LESS:
+      case TokenType.LESS_EQUAL:
+      case TokenType.BANG:
+      case TokenType.BANG_EQUAL:
+      case TokenType.MODULO:
       case TokenType.PLUS:
       case TokenType.MINUS:
       case TokenType.STAR:
