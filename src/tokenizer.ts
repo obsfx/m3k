@@ -67,7 +67,7 @@ export const tokenize = (input: string): Token[] => {
       case '!':
         if (peek() === '=') {
           consume()
-          tokens.push({ type: TokenType.BANG_EQUAL, value: '!=' })
+          tokens.push({ type: TokenType.BANG_EQUAL, value: '!==' })
           break
         }
 

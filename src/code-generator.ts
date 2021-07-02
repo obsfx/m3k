@@ -52,7 +52,7 @@ export const generate = (node: Node): string => {
         (node as IfStatement).consequent
       )} ${
         (node as IfStatement).alternate
-          ? `${generate((node as IfStatement).alternate as BlockStatement)}`
+          ? ` else ${generate((node as IfStatement).alternate as BlockStatement)}`
           : ''
       }`
 
