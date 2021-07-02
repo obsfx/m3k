@@ -51,8 +51,8 @@ You can try the the language here: https://obsfx.github.io/m3k-playground/
 
 ;; Accessing JavaScript objects
 (getval property object)
-(getval body document)											                ;; document.body
-(define canvas ((getval create-element document) "canvas"))	;; let canvas = document.createElement("canvas");
+(getval body document)                                      ;; document.body
+(define canvas ((getval create-element document) "canvas")) ;; let canvas = document.createElement("canvas");
 
 ;; Comparison
 (!= 5 5)                                                    ;; 5 !== 5;
