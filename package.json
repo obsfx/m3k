@@ -1,6 +1,6 @@
 {
   "name": "m3k",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "m3k is a lisp dialect that compiles to JavaScript",
   "main": "./build/index.js",
   "bin": {
