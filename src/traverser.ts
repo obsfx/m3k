@@ -1,6 +1,5 @@
 import {
   AST,
-  NodeType,
   Node,
   BinaryExpression,
   ExpressionStatement,
@@ -22,13 +21,13 @@ import { VisitorMethods, Visitor } from './types/visitor.types'
 
 export const traverse = (ast: AST, visitor: Visitor): void => {
   const traverseArray = (array: Node[], parent: Node): void => {
-    for (let i: number = 0; i < array.length; i++) {
+    for (let i = 0; i < array.length; i++) {
       traverseNode(array[i], parent)
     }
   }
 
   const traverseNode = (node: Node, parent: Node): void => {
-    const methods: VisitorMethods = visitor[node.type as NodeType]
+    const methods: VisitorMethods = visitor[node.type]
 
     if (methods && methods.enter) {
       methods.enter(node, parent)
@@ -115,7 +114,7 @@ export const traverse = (ast: AST, visitor: Visitor): void => {
         break
 
       default:
-        throw new Error(`Undefined AST node type: ${node.type}`)
+        throw new Error(`Undefined AST node type: ${node.type as string}`)
     }
 
     if (methods && methods.exit) {

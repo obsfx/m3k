@@ -26,23 +26,24 @@ import {
 export const generate = (node: Node): string => {
   switch (node.type) {
     case 'Program':
-      return (node as AST).body.map(generate).join('\n')
+      return (node as AST).body.map(generate).join('')
 
     case 'BlockStatement': {
       let lastNode: Expression | Declaration | Statement | undefined = undefined
+      const lastElement: Expression | Statement | Declaration = (node as BlockStatement).body[
+        (node as BlockStatement).body.length - 1
+      ]
 
       if (
-        (node as BlockStatement).body[(node as BlockStatement).body.length - 1] &&
-        (node as BlockStatement).body[(node as BlockStatement).body.length - 1].generaltype !==
-          'Statement' &&
-        (node as BlockStatement).body[(node as BlockStatement).body.length - 1].type !==
-          'AssignmentExpression'
+        lastElement &&
+        lastElement.type === 'ExpressionStatement' &&
+        (lastElement as ExpressionStatement).expression.type !== 'AssignmentExpression'
       ) {
         lastNode = (node as BlockStatement).body.pop()
       }
 
-      return `{${(node as BlockStatement).body.map(generate).join('\n')}${
-        lastNode ? `\nreturn ${generate(lastNode)}` : ''
+      return `{${(node as BlockStatement).body.map(generate).join('')}${
+        lastNode ? ` return ${generate(lastNode)}` : ''
       }}`
     }
 
@@ -56,9 +57,9 @@ export const generate = (node: Node): string => {
       }`
 
     case 'VariableDeclaration':
-      return `${(node as VariableDeclaration).kind} ${(
-        node as VariableDeclaration
-      ).declarations.map(generate)};`
+      return `${(node as VariableDeclaration).kind} ${(node as VariableDeclaration).declarations
+        .map(generate)
+        .join('')};`
 
     case 'VariableDeclarator':
       return `${generate((node as VariableDeclarator).id)} = ${generate(
@@ -136,9 +137,9 @@ export const generate = (node: Node): string => {
       return `...${generate((node as SpreadElement).argument)}`
 
     case 'Literal':
-      return `${(node as Literal).value}`
+      return `${(node as Literal).value as string}`
 
     default:
-      throw new Error(`Undefined AST node: ${node.type}`)
+      throw new Error(`Undefined AST node: ${node.type as string}`)
   }
 }

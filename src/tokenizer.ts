@@ -1,8 +1,8 @@
 import { TokenType, Token } from './types/token.types'
 
 export const tokenize = (input: string): Token[] => {
-  let tokens: Token[] = []
-  let current: number = 0
+  const tokens: Token[] = []
+  let current = 0
 
   const isEnd = (): boolean => {
     return current >= input.length
@@ -113,7 +113,7 @@ export const tokenize = (input: string): Token[] => {
 
       case '"':
         {
-          let str: string = ''
+          let str = ''
 
           while (current < input.length && peek() !== '"') {
             str += consume()

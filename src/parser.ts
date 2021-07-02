@@ -27,13 +27,13 @@ import {
 type WalkResult = Expression | Declaration | null
 
 export const parse = (tokens: Token[]): AST => {
-  let ast: AST = {
+  const ast: AST = {
     generaltype: 'Node',
     type: 'Program',
     body: [],
   }
-  let current: number = 0
-  let line: number = 0
+  let current = 0
+  let line = 0
 
   const definedIdentifiers: string[] = []
 
@@ -41,7 +41,7 @@ export const parse = (tokens: Token[]): AST => {
     return tokens[current++] || null
   }
 
-  const peek = (offet: number = 0): Token => {
+  const peek = (offet = 0): Token => {
     return tokens[current + offet]
   }
 
@@ -59,7 +59,7 @@ export const parse = (tokens: Token[]): AST => {
     return false
   }
 
-  const consumeUntil = (type: TokenType, include: boolean = true): void => {
+  const consumeUntil = (type: TokenType, include = true): void => {
     while (current < tokens.length && peek().type !== type) {
       consume()
     }
@@ -69,7 +69,7 @@ export const parse = (tokens: Token[]): AST => {
     }
   }
 
-  const before = (offet: number = 0): Token => {
+  const before = (offet = 0): Token => {
     return tokens[current - 2 + offet]
   }
 
@@ -206,7 +206,7 @@ export const parse = (tokens: Token[]): AST => {
 
       case TokenType.STRING:
       case TokenType.NUMBER: {
-        let node: Literal = {
+        const node: Literal = {
           generaltype: 'Expression',
           type: 'Literal',
           value: token.value,

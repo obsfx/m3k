@@ -10,7 +10,7 @@ import { Visitor } from './types/visitor.types'
 
 import { traverse } from './traverser'
 
-let depth: number = 0
+let depth = 0
 
 const debugVisitor: Visitor = {
   Program: {
@@ -185,7 +185,7 @@ const debugVisitor: Visitor = {
 
   Literal: {
     enter: (node: Node) => {
-      console.log(`${' '.repeat(depth * 2)}${node.type} ${(node as Literal).value}`)
+      console.log(`${' '.repeat(depth * 2)}${node.type} ${(node as Literal).value as string}`)
       depth++
     },
     exit: () => {
