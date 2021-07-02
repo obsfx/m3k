@@ -2,19 +2,13 @@
   "name": "m3k",
   "version": "0.1.0",
   "description": "m3k is a lisp dialect that compiles to JavaScript",
-  "main": "./src/index.js",
+  "main": "./build/index.js",
   "bin": {
     "m3k": "./bin/index.js",
     "obsfx@m3k": "./bin/index.js"
   },
   "types": "./build/index.d.ts",
-  "keywords": [
-    "programming-language",
-    "lisp",
-    "compiler",
-    "code generator",
-    "typescript"
-  ],
+  "keywords": ["programming-language", "lisp", "compiler", "code generator", "typescript"],
   "scripts": {
     "run": "DEV=true ts-node ./src/index.ts",
     "lint": "eslint src --ext .ts",
