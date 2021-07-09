@@ -11,12 +11,12 @@ const argv: string[] = process.argv.slice(2)
 const [input] = argv
 
 if (!input) {
-  console.log(`Please specify the input file\n  usage: m3k input.m`)
+  console.log(`Please specify the input file\n  usage: m3k input.lisp`)
   process.exit(1)
 }
 
 if (!fs.existsSync(input)) {
-  console.log(`Input file couldn't found\n  usage: m3k input.m`)
+  console.log(`Input file couldn't found\n  usage: m3k input.lisp`)
   process.exit(1)
 }
 
