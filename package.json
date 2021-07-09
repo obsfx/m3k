@@ -11,9 +11,12 @@
   "keywords": [
     "programming-language",
     "lisp",
+    "dialect",
     "compiler",
+    "transpiler",
     "code generator",
-    "typescript"
+    "typescript",
+    "javascript"
   ],
   "scripts": {
     "run": "DEV=true ts-node ./src/index.ts",

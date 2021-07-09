@@ -1,26 +1,36 @@
 # m3k
 
-`m3k` is a `lisp` dialect that compiles to `JavaScript`. This repository contains the source code of the compiler and the project still work in progress.
+[![npm version](https://badge.fury.io/js/m3k.svg)](https://badge.fury.io/js/m3k)
+
+`m3k` is a `Lisp` dialect that compiles to `JavaScript`. This repository contains the source code of the compiler. Project is still work in progress.
+
+`try`: https://obsfx.github.io/m3k/
 
 ## Usage
 
+Installation
+
 ```
-Intallation (Node)
 npm i -g m3k
+```
 
 Usage
+
+```
 m3k input.lisp
 ```
 
 or
 
+Installation
+
 ```
-Intallation (Node)
 npm i m3k
 ```
 
-```javascript
 Usage
+
+```javascript
 import m3k from 'm3k'
 
 const tokens = m3k.tokenize(source)
@@ -41,14 +51,10 @@ or
 </script>
 ```
 
-## Try it online
-
-You can try the the language here: https://obsfx.github.io/m3k/
-
 ## Language Overview
 
 ```lisp
-;; Variables and data types										              compiled output
+;; Variables and data types                                 compiled output
 (define variable-name value)
 (define x 5)                                                ;; let x = 5;
 (define pet "Dog")                                          ;; let pet = "Dog";
@@ -105,6 +111,13 @@ You can try the the language here: https://obsfx.github.io/m3k/
     (print "equal")                                         ;; if (4 === 5) { return console.log("equal");}
     (print "not equal"))                                    ;; else { return console.log("not equal");}})();
 ```
+
+# References
+
+- `(How to Write a (Lisp) Interpreter (in Python))`: https://norvig.com/lispy.html
+- `the-super-tiny-compiler`: https://github.com/jamiebuilds/the-super-tiny-compiler
+- `Visitor`: https://refactoring.guru/design-patterns/visitor
+- `Crafting Interpreters`: https://craftinginterpreters.com
 
 ## TODO
 
