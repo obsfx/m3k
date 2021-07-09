@@ -62,7 +62,7 @@ const generate = (node) => {
             }
         }
         case 'MemberExpression': {
-            if (node.property.type === 'Identifier') {
+            if (!node.computed) {
                 return `${exports.generate(node.object)}.${exports.generate(node.property)}`;
             }
             else {
@@ -74,7 +74,7 @@ const generate = (node) => {
         case 'Property':
             return `${exports.generate(node.key)}: ${exports.generate(node.value)}`;
         case 'BinaryExpression':
-            return `${exports.generate(node.left)} ${node.operator} ${exports.generate(node.right)}`;
+            return `(${exports.generate(node.left)} ${node.operator} ${exports.generate(node.right)})`;
         case 'UnaryExpression':
             return `${node.operator}${exports.generate(node.argument)}`;
         case 'SpreadElement':
@@ -373,6 +373,7 @@ const parse = (tokens) => {
                             type: 'MemberExpression',
                             object,
                             property,
+                            computed: false,
                         };
                         const args = [];
                         while (!seekForToken(token_types_1.TokenType.CLOSE_PAREN)) {
@@ -447,6 +448,7 @@ const parse = (tokens) => {
                             type: 'MemberExpression',
                             object,
                             property,
+                            computed: true,
                         };
                         // consume the close paren
                         consumeUntil(token_types_1.TokenType.CLOSE_PAREN);
@@ -512,6 +514,7 @@ const parse = (tokens) => {
                             type: 'MemberExpression',
                             object,
                             property,
+                            computed: false,
                         };
                         const args = [];
                         while (!seekForToken(token_types_1.TokenType.CLOSE_PAREN)) {
@@ -558,6 +561,7 @@ const parse = (tokens) => {
                             type: 'MemberExpression',
                             object,
                             property,
+                            computed: false,
                         };
                         const node = {
                             generaltype: 'Expression',
@@ -588,6 +592,7 @@ const parse = (tokens) => {
                             type: 'MemberExpression',
                             object,
                             property,
+                            computed: false,
                         };
                         // consume the close paren
                         consumeUntil(token_types_1.TokenType.CLOSE_PAREN);
@@ -663,6 +668,7 @@ const parse = (tokens) => {
                             type: 'MemberExpression',
                             object,
                             property,
+                            computed: false,
                         };
                         // consume the close paren
                         consumeUntil(token_types_1.TokenType.CLOSE_PAREN);
