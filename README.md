@@ -2,9 +2,48 @@
 
 `m3k` is a `lisp` dialect that compiles to `JavaScript`. This repository contains the source code of the compiler and the project still work in progress.
 
+## Usage
+
+```
+Intallation (Node)
+npm i -g m3k
+
+Usage
+m3k input.lisp
+```
+
+or
+
+```
+Intallation (Node)
+npm i m3k
+```
+
+```javascript
+Usage
+import m3k from 'm3k'
+
+const tokens = m3k.tokenize(source)
+const ast = m3k.parse(tokens)
+const transformAST = m3k.transform(ast)
+const code = m3k.generate(transformAST)
+```
+
+or
+
+```html
+<script src="m3k.js"></script>
+<script>
+  const tokens = m3k.tokenize(source)
+  const ast = m3k.parse(tokens)
+  const transformAST = m3k.transform(ast)
+  const code = m3k.generate(transformAST)
+</script>
+```
+
 ## Try it online
 
-You can try the the language here: https://obsfx.github.io/m3k-playground/
+You can try the the language here: https://obsfx.github.io/m3k/
 
 ## Language Overview
 
