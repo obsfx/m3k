@@ -403,6 +403,7 @@ export const parse = (tokens: Token[]): AST => {
               type: 'MemberExpression',
               object,
               property,
+              computed: false,
             }
 
             const args: (Expression | SpreadElement)[] = []
@@ -521,6 +522,7 @@ export const parse = (tokens: Token[]): AST => {
               type: 'MemberExpression',
               object,
               property,
+              computed: true,
             }
 
             // consume the close paren
@@ -613,6 +615,7 @@ export const parse = (tokens: Token[]): AST => {
               type: 'MemberExpression',
               object,
               property,
+              computed: false,
             }
 
             const args: (Expression | SpreadElement)[] = []
@@ -682,6 +685,7 @@ export const parse = (tokens: Token[]): AST => {
               type: 'MemberExpression',
               object,
               property,
+              computed: false,
             }
 
             const node: CallExpression = {
@@ -725,6 +729,7 @@ export const parse = (tokens: Token[]): AST => {
               type: 'MemberExpression',
               object,
               property,
+              computed: false,
             }
 
             // consume the close paren
@@ -842,6 +847,7 @@ export const parse = (tokens: Token[]): AST => {
               type: 'MemberExpression',
               object,
               property,
+              computed: false,
             }
 
             // consume the close paren

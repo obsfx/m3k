@@ -108,7 +108,7 @@ export const generate = (node: Node): string => {
     }
 
     case 'MemberExpression': {
-      if ((node as MemberExpression).property.type === 'Identifier') {
+      if (!(node as MemberExpression).computed) {
         return `${generate((node as MemberExpression).object)}.${generate(
           (node as MemberExpression).property
         )}`
@@ -126,9 +126,9 @@ export const generate = (node: Node): string => {
       return `${generate((node as Property).key)}: ${generate((node as Property).value)}`
 
     case 'BinaryExpression':
-      return `${generate((node as BinaryExpression).left)} ${
+      return `(${generate((node as BinaryExpression).left)} ${
         (node as BinaryExpression).operator
-      } ${generate((node as BinaryExpression).right)}`
+      } ${generate((node as BinaryExpression).right)})`
 
     case 'UnaryExpression':
       return `${(node as UnaryExpression).operator}${generate((node as UnaryExpression).argument)}`

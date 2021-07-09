@@ -25,17 +25,6 @@ export type NodeType =
 
 export type GeneralType = 'Node' | 'Expression' | 'Statement' | 'Declaration'
 
-//export type InnerNode =
-//  | MemberExpression
-//  | ArrayExpression
-//  | ObjectExpression
-//  | UnaryExpression
-//  | BinaryExpression
-//  | CallExpression
-//  | AssignmentExpression
-//  | Identifier
-//  | Literal
-
 /**
  * Nodes
  */
@@ -98,6 +87,7 @@ export interface MemberExpression extends Expression {
   readonly type: 'MemberExpression'
   object: Expression
   property: Expression
+  computed: boolean
 }
 
 export interface CallExpression extends Expression {
