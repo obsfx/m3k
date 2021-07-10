@@ -6,21 +6,21 @@
     "runtime-main.js": "/m3k/static/js/runtime-main.b880ec09.js",
     "runtime-main.js.map": "/m3k/static/js/runtime-main.b880ec09.js.map",
     "static/css/2.c697d455.chunk.css": "/m3k/static/css/2.c697d455.chunk.css",
-    "static/js/2.75834008.chunk.js": "/m3k/static/js/2.75834008.chunk.js",
-    "static/js/2.75834008.chunk.js.map": "/m3k/static/js/2.75834008.chunk.js.map",
+    "static/js/2.83f6f076.chunk.js": "/m3k/static/js/2.83f6f076.chunk.js",
+    "static/js/2.83f6f076.chunk.js.map": "/m3k/static/js/2.83f6f076.chunk.js.map",
     "static/js/3.0b153445.chunk.js": "/m3k/static/js/3.0b153445.chunk.js",
     "static/js/3.0b153445.chunk.js.map": "/m3k/static/js/3.0b153445.chunk.js.map",
     "index.html": "/m3k/index.html",
     "static/css/2.c697d455.chunk.css.map": "/m3k/static/css/2.c697d455.chunk.css.map",
     "static/css/main.6dea0f05.chunk.css.map": "/m3k/static/css/main.6dea0f05.chunk.css.map",
-    "static/js/2.75834008.chunk.js.LICENSE.txt": "/m3k/static/js/2.75834008.chunk.js.LICENSE.txt",
+    "static/js/2.83f6f076.chunk.js.LICENSE.txt": "/m3k/static/js/2.83f6f076.chunk.js.LICENSE.txt",
     "static/media/inter.css": "/m3k/static/media/Inter.var.9df5db38.woff2",
     "static/media/index.css": "/m3k/static/media/ubuntu-mono-latin-700italic.067da714.woff2"
   },
   "entrypoints": [
     "static/js/runtime-main.b880ec09.js",
     "static/css/2.c697d455.chunk.css",
-    "static/js/2.75834008.chunk.js",
+    "static/js/2.83f6f076.chunk.js",
     "static/css/main.6dea0f05.chunk.css",
     "static/js/main.adb35bdb.chunk.js"
   ]
